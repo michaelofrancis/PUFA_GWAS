@@ -14,15 +14,19 @@ i=$SLURM_ARRAY_TASK_ID
 ml PLINK/2.00-alpha2.3-x86_64-20200914-dev
 cd /work/kylab/mike/PUFA-GWAS/Prune-improved
 
+#---------
+#Set which
+#steps run
+#---------
 step1=true
 step2=true
 step3=true
 step4=true
-
+#---------
 
 if [ $step1 = true ]; then
 ###-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-###STEP 1. Convert BGEN to PFILE=-=-=-=-=-=- 
+###STEP 1. Convert BGEN to PFILE=-=-=-=-=-=-
 ###-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 echo "-=-=-=-=-=-=-=-STEP 1-=-=-=-=-=-=-=-\n\n"
 
@@ -49,6 +53,7 @@ if [ $step2 = true ]; then
 ###-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 ###STEP 2. Extract INFO>0.8 SNPs=-=-=-=-=-=- 
 ###-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
 echo "-=-=-=-=-=-=-=-STEP 2-=-=-=-=-=-=-=-\n\n"
 genoindir=$outdir
 outdir=("/scratch/mf91122/PUFA-GWAS/Prune-improved/2.extractINFOsnps")
