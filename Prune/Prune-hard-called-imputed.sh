@@ -1,27 +1,31 @@
 #!/bin/bash
 #SBATCH --partition=highmem_p
-#SBATCH --job-name=pfile
+#SBATCH --job-name=Prune
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=16
 #SBATCH --time=144:00:00
 #SBATCH --mem=180000
-#SBATCH --output=pfile.%j.out
-#SBATCH --error=pfile.%j.err
-#SBATCH --array=1-22
+#SBATCH --output=Prune.%j.out
+#SBATCH --error=Prune.%j.err
+
+#--cancel array jobs--#SBATCH --array=1-22
 
 i=$SLURM_ARRAY_TASK_ID
 
-ml PLINK/2.00-alpha2.3-x86_64-20200914-dev
+ml PLINK/2.00-alpha2.3-x86_64-20210920-dev
 cd /work/kylab/mike/PUFA-GWAS/Prune-improved
 
 #---------
 #Set which
 #steps run
 #---------
-step1=true
-step2=true
-step3=true
-step4=true
+step1=false #worked
+step2=false #worked
+step3=false #worked
+step4=false #worked
+step5=false #worked
+step6=false #worked
+step7=true
 #---------
 
 if [ $step1 = true ]; then
@@ -119,3 +123,57 @@ plink2 \
 --out $outdir/chr"$i"
 
 fi
+
+if [ $step5 = true ]; then
+###-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+###STEP 5. Make list to merge bedfiles=-=-=-
+###-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+echo "-=-=-=-=-=-=-=-STEP 5-=-=-=-=-=-=-=-\n\n"
+
+outdir=("/scratch/mf91122/PUFA-GWAS/Prune-improved/4.bedfinal")
+rm -f "$outdir"/merge.txt
+
+chromosomes=({1..22})
+
+
+for i in ${chromosomes[*]}
+        do
+
+        echo "$outdir"/chr"$i" >> "$outdir"/merge.txt
+
+done
+
+
+fi #end step 5
+
+
+if [ $step6 = true ]; then
+###-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+###STEP 6. Merge bedfiles-=-=-=-=-=-=-=-=-=-
+###-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+echo "-=-=-=-=-=-=-=-STEP 6-=-=-=-=-=-=-=-\n\n"
+
+outdir=("/scratch/mf91122/PUFA-GWAS/Prune-improved/4.bedfinal")
+
+plink2 \
+--pmerge-list "$outdir"/merge.txt bfile \
+--make-pgen \
+--merge-max-allele-ct 2 \
+--out "$outdir"/merged
+
+fi #end step 6
+
+if [ $step7 = true ]; then
+###-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+###STEP 7. Convert merged pfile to bed=-=-=-
+###-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+echo "-=-=-=-=-=-=-=-STEP 7-=-=-=-=-=-=-=-\n\n"
+
+outdir=("/scratch/mf91122/PUFA-GWAS/Prune-improved/4.bedfinal")
+
+plink2 \
+--pfile "$outdir"/merged \
+--make-bed \
+--out "$outdir"/mergedbed
+
+fi #end step 7
