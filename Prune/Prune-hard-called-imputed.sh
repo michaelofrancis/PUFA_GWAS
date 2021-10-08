@@ -7,25 +7,25 @@
 #SBATCH --mem=180000
 #SBATCH --output=Prune.%j.out
 #SBATCH --error=Prune.%j.err
-
-#--cancel array jobs--#SBATCH --array=1-22
+#SBATCH --array=1-22
 
 i=$SLURM_ARRAY_TASK_ID
 
 ml PLINK/2.00-alpha2.3-x86_64-20210920-dev
-cd /work/kylab/mike/PUFA-GWAS/Prune-improved
+cd /work/kylab/mike/PUFA-GWAS/Prune
 
 #---------
 #Set which
 #steps run
 #---------
-step1=false #worked
-step2=false #worked
-step3=false #worked
-step4=false #worked
-step5=false #worked
-step6=false #worked
-step7=true
+step1=true
+step2=true
+step3=true
+step4=true
+step5=true
+#Cancel array jobs below here-----
+step6=false
+step7=false
 #---------
 
 if [ $step1 = true ]; then
@@ -37,13 +37,14 @@ echo "-=-=-=-=-=-=-=-STEP 1-=-=-=-=-=-=-=-\n\n"
 #Start with UKB source genotype bgen files
 genoindir=("/scratch/mf91122/bgen_v1.2_UKBsource")
 mfiscoredir=("/work/kylab/mike/UKB/quality-scores/mfi")
-outdir=("/scratch/mf91122/PUFA-GWAS/Prune-improved/1.pfilefromrawbgen")
+outdir=("/scratch/mf91122/PUFA-GWAS/Prune/1.pfilefromrawbgen")
 
 mkdir -p $outdir
 
 plink2 \
 --bgen $genoindir/ukb_imp_chr"$i"_v3.bgen ref-first \
 --sample $genoindir/ukb_imp_v3.sample \
+--keep /scratch/mf91122/PUFA-GWAS/pheno/PUFA_GWAS_phenoQC_IDS.txt \
 --geno 0.01 \
 --hwe 1e-08 \
 --maf 0.01 \
@@ -60,7 +61,7 @@ if [ $step2 = true ]; then
 
 echo "-=-=-=-=-=-=-=-STEP 2-=-=-=-=-=-=-=-\n\n"
 genoindir=$outdir
-outdir=("/scratch/mf91122/PUFA-GWAS/Prune-improved/2.extractINFOsnps")
+outdir=("/scratch/mf91122/PUFA-GWAS/Prune/2.extractINFOsnps")
 
 mkdir -p $outdir
 
@@ -80,14 +81,13 @@ if [ $step3 = true ]; then
 echo "-=-=-=-=-=-=-=-STEP 3-=-=-=-=-=-=-=-\n\n"
 
 genoindir=$outdir
-outdir=("/scratch/mf91122/PUFA-GWAS/Prune-improved/3.Hardcall-PruneSNPs")
+outdir=("/scratch/mf91122/PUFA-GWAS/Prune/3.Hardcall-PruneSNPs")
 
 mkdir -p $outdir
 
 plink2 \
 --pfile $genoindir/chr"$i" \
 --exclude range /work/kylab/mike/CCC/C.QC/Prune1excludeset.txt \
---keep /scratch/mf91122/PUFA-GWAS/pheno/PUFA_GWAS_phenoQC_IDS.txt \
 --hard-call-threshold 0.1 \
 --set-missing-var-ids @:#:\$r:\$a \
 --rm-dup force-first \
@@ -108,7 +108,7 @@ echo "-=-=-=-=-=-=-=-STEP 4-=-=-=-=-=-=-=-\n\n"
 
 #genoindir same as step 2 so don't re set
 prunelistdir=$outdir
-outdir=("/scratch/mf91122/PUFA-GWAS/Prune-improved/4.bedfinal")
+outdir=("/scratch/mf91122/PUFA-GWAS/Prune/4.bedfinal")
 
 
 mkdir -p $outdir
@@ -130,7 +130,7 @@ if [ $step5 = true ]; then
 ###-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 echo "-=-=-=-=-=-=-=-STEP 5-=-=-=-=-=-=-=-\n\n"
 
-outdir=("/scratch/mf91122/PUFA-GWAS/Prune-improved/4.bedfinal")
+outdir=("/scratch/mf91122/PUFA-GWAS/Prune/4.bedfinal")
 rm -f "$outdir"/merge.txt
 
 chromosomes=({1..22})
@@ -153,7 +153,7 @@ if [ $step6 = true ]; then
 ###-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 echo "-=-=-=-=-=-=-=-STEP 6-=-=-=-=-=-=-=-\n\n"
 
-outdir=("/scratch/mf91122/PUFA-GWAS/Prune-improved/4.bedfinal")
+outdir=("/scratch/mf91122/PUFA-GWAS/Prune/4.bedfinal")
 
 plink2 \
 --pmerge-list "$outdir"/merge.txt bfile \
@@ -169,7 +169,7 @@ if [ $step7 = true ]; then
 ###-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 echo "-=-=-=-=-=-=-=-STEP 7-=-=-=-=-=-=-=-\n\n"
 
-outdir=("/scratch/mf91122/PUFA-GWAS/Prune-improved/4.bedfinal")
+outdir=("/scratch/mf91122/PUFA-GWAS/Prune/4.bedfinal")
 
 plink2 \
 --pfile "$outdir"/merged \
