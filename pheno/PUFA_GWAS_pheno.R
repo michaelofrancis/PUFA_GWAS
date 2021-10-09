@@ -1,8 +1,8 @@
-library(plyr)
-library(dplyr)
-library(tidyverse)
-library(ggpubr)
-library(RNOmni)
+suppressMessages(library(plyr))
+suppressMessages(library(dplyr))
+suppressMessages(library(tidyverse))
+suppressMessages(library(ggpubr))
+suppressMessages(library(RNOmni))
 
 setwd("/scratch/mf91122/UKB-pheno")
 
@@ -20,12 +20,6 @@ QCids<-read.table("/work/kylab/mike/PUFA-GWAS/pheno/bd_QC-keep.txt",header=TRUE)
 source('/work/kylab/mike/PUFA-GWAS/pheno/load_UKBphenotables.R') #20 min
 
 #Phenotypes  ------------------------------------------------------------------------------
-#Five Measured Phenotypes: Field ID 23444, Omega-3 Fatty Acids; 
-#Field ID 23445, Omega-6 Fatty Acids; 
-#Field ID 23446, Polyunsaturated Fatty Acids; 
-#Field ID 23449, Linoleic Acid; 
-#Field ID 23450, Docosahexaenoic Acid; 
-#Calculated Phenotypes: Omega-6 to Omega-3 ratio; 
 #Phenotype Pre-processing:  
 #regress the raw phenotype on covariates; 
 #the resulting residuals are transformed with rank-based inverse normal transformation (McCaw et al., 2020);
@@ -174,6 +168,10 @@ new<-new[!is.na(new$w3FA_NMR),] #only NMR participants
 
 #Overall QC flags
 new<-new[is.na(new$MeasurementQualityFlag),]
+new$HighPyruvate[is.na(new$HighPyruvate)]<-0
+new$HighPyruvate[is.na(new$HighLactate)]<-0
+new$HighPyruvate[is.na(new$LowGlucose)]<-0
+new$HighPyruvate[is.na(new$LowProtein)]<-0
 
 
 
@@ -182,12 +180,36 @@ new<-new[is.na(new$MeasurementQualityFlag),]
 new$lipid_med[new$lipid_med!=1]<-0
 #This column has NA's but I think it's okay to keep.
 
+#Statins
+statincols<-c(sprintf("f.20003.0.%s", 0:47))
+statincodes<-c(1141146234,1141192414,1140910632,1140888594,1140864592,
+	1141146138,1140861970,1140888648,1141192410,
+	1141188146,1140861958,1140881748,1141200040)
+
+manyColsToDummy(statincodes, bd_join4[,statincols], "statinoutput")
+statinoutput$statins<-rowSums(statinoutput) 
+statinoutput$statins[statinoutput$statins>1]<-1
+
+statinoutput$IID<-bd_join4$f.eid
+
+statinoutput<-statinoutput%>%select(IID, statins)
+
+new<-left_join(new, statinoutput, by="IID")
+
+
+#Clean up columns
+
+
 
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 #Regress phenotypes, extract residuals-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 #ref: https://github.com/lindgrengroup/fatdistnGWAS/commit/35ca6d65dbdb1fc3cf417432dc0575805ce80878
 #Copied from CCC, not edited yet.VVVV
+#regress the raw phenotype on covariates; 
+#the resulting residuals are transformed with 
+#rank-based inverse normal transformation (McCaw et al., 2020);
+
 
 #CENTER 19 HAS NO 1's NO PEOPLE THERE REMOVE COLUMN
 new<-new%>%select(-center19)
@@ -253,18 +275,91 @@ for (i in 1:length(phenotypes)){
 resdat_inv<-as_tibble(as.data.frame(resdat_inv))
 resdat_inv$IID<-new$IID
 
-new<-left_join(new, resdat_inv, by="IID")
+new1<-left_join(new, resdat_inv, by="IID")
 
-participants<-new%>%select(IID)
-participants$FID<-participants$IID
-participants<-participants%>%select(FID, IID)
+participants1<-new1%>%select(IID)
+participants1$FID<-participants1$IID
+participants1<-participants1%>%select(FID, IID)
+
+
+###=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+###MODEL 2-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+###=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- 
+
+#Model 2: Model 1 + BMI, lipid medication, SES via Townsend score; 
+
+###=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- 
+#Calculate residuals+++++++++++++++++++++++++++++
+###=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- 
+
+resdat2<-matrix(NA,nrow(new),length(phenotypes))
+colnames(resdat2)<-phenotypes
+
+#LIPID MED IS SCREWING THIS UP
+
+for (p in 1:length(phenotypes)){
+    assign(paste("lm", phenotypes[p], sep="_"),
+           lm(new[[phenotypes[p]]] ~ Age + Age2 +
+            center1 + center2 + center3 + center4 +
+                center5 + center6 + center7 + center8 +
+                center9 + center10 + center11 + center12 +
+                center13 + center14 + center15 + center16 +
+                center17 + center18 + center20 +
+                center21 + Sex + Geno_batch + 
+		BMI + Townsend + statins, data=new,
+        na.action=na.exclude))
+    lmname<-paste("lm", phenotypes[p], sep="_")
+    lmobj<-get(lmname)
+    resdat2[,p]<-resid(lmobj)
+}
+
+resdat2<-as_tibble(resdat2)
+colnames(resdat2)<-paste(phenotypes, "res", sep="_")
+
+
+#the resulting residuals are transformed with rank-based inverse normal transformation
+###=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- 
+#Rank INT on residuals+++++++++++++++++++++++++++
+###=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- 
+
+resdat_inv2<-matrix(NA,nrow(new),length(phenotypes))
+colnames(resdat_inv2)<-paste(phenotypes, "resinv", sep="_")
+
+for (i in 1:length(phenotypes)){
+    resdat_inv2[,i] <- inversenormal(resdat2[,i])
+}
+
+resdat_inv2<-as_tibble(as.data.frame(resdat_inv2))
+resdat_inv2$IID<-new$IID
+
+new2<-left_join(new, resdat_inv2, by="IID")
+
+participants2<-new2%>%select(IID)
+participants2$FID<-participants2$IID
+participants2<-participants2%>%select(FID, IID)
+
+
+
+###=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+###WRITE OUTPUT=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+###=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 outdir="/scratch/mf91122/PUFA-GWAS/pheno"
 
-write.table(participants, 
-	paste(outdir, "/PUFA_GWAS_phenoQC_IDS.txt",sep=""), 
+#Model 1
+write.csv(participants1, 
+	paste(outdir, "/PUFA_GWAS_phenoQC_IDS_M1.txt",sep=""), 
 	row.names=FALSE, quote=FALSE)
 
-write.table(new, 
-	paste(outdir, "PUFA_GWAS_pheno.txt", sep=""),
+write.csv(new1, 
+	paste(outdir, "/PUFA_GWAS_pheno_M1.txt", sep=""),
 	row.names=FALSE, quote=FALSE)
+
+#Model 2
+write.table(participants2,
+        paste(outdir, "/PUFA_GWAS_phenoQC_IDS_M2.txt",sep=""),
+        row.names=FALSE, quote=FALSE)
+
+write.table(new2,
+        paste(outdir, "/PUFA_GWAS_pheno_M2.txt", sep=""),
+        row.names=FALSE, quote=FALSE)
