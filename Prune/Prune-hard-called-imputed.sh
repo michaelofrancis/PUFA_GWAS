@@ -7,7 +7,8 @@
 #SBATCH --mem=180000
 #SBATCH --output=Prune.%j.out
 #SBATCH --error=Prune.%j.err
-#SBATCH --array=1-22
+
+#cancl----#SBATCH --array=1-22
 
 i=$SLURM_ARRAY_TASK_ID
 
@@ -18,14 +19,14 @@ cd /work/kylab/mike/PUFA-GWAS/Prune
 #Set which
 #steps run
 #---------
-step1=true
-step2=true
-step3=true
-step4=true
-step5=true
+step1=false
+step2=false
+step3=false
+step4=false
+step5=false #this merging process screwed things up for the bfile in BOLT so recommend stopping at step4.
 #Cancel array jobs below here-----
-step6=false
-step7=false
+step6=true
+step7=true
 #---------
 
 if [ $step1 = true ]; then
@@ -174,6 +175,10 @@ outdir=("/scratch/mf91122/PUFA-GWAS/Prune/4.bedfinal")
 plink2 \
 --pfile "$outdir"/merged \
 --make-bed \
---out "$outdir"/mergedbed
+--geno 0.01 \
+--hwe 1e-08 \
+--maf 0.01 \
+--mind 0.05 \
+--out "$outdir"/mergedbed_mind0.05
 
 fi #end step 7
