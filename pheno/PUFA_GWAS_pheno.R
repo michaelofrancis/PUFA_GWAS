@@ -30,12 +30,12 @@ source('/work/kylab/mike/PUFA-GWAS/pheno/load_UKBphenotables.R') #20 min
 
 
 pheno<-bd%>%select(f.eid, f.21003.0.0, f.31.0.0, 
-                   f.21000.0.0, f.189.0.0,
+                   f.189.0.0,
                    f.54.0.0, f.22000.0.0
                     )
 
 colnames(pheno)<-c("IID", "Age", "Sex",  
-                   "Race", "Townsend",
+                   "Townsend",
                    "Assessment_center", "Geno_batch"
                     )
 
@@ -43,8 +43,7 @@ pheno2<-bd_join4%>%select(f.eid,
                           f.21001.0.0, f.20116.0.0, f.20160.0.0,
                           f.6177.0.0,f.6153.0.0,
                           f.23651.0.0, f.23652.0.0, 
-                          f.23653.0.0, f.23654.0.0, f.23655.0.0,  
-                          f.3166.0.0, f.74.0.0
+                          f.23653.0.0, f.23654.0.0, f.23655.0.0  
                           )
 #TFAP = PUFA to total fatty acid percentage
 
@@ -52,8 +51,7 @@ colnames(pheno2)<-c("IID",
                     "BMI", "SmokeStatus","Ever_smoked",                    
                     "lipid_med", "lipid_med_plushormones",
                     "MeasurementQualityFlag", "HighLactate",
-                    "HighPyruvate", "LowGlucose","LowProtein",
-                    "blood_draw_time","Fasting_time"
+                    "HighPyruvate", "LowGlucose","LowProtein"
                     )
 
 new<-left_join(pheno, pheno2, by="IID")
@@ -347,11 +345,11 @@ participants2<-participants2%>%select(FID, IID)
 outdir="/scratch/mf91122/PUFA-GWAS/pheno"
 
 #Model 1
-write.csv(participants1, 
+write.table(participants1, 
 	paste(outdir, "/PUFA_GWAS_phenoQC_IDS_M1.txt",sep=""), 
 	row.names=FALSE, quote=FALSE)
 
-write.csv(new1, 
+write.table(new1, 
 	paste(outdir, "/PUFA_GWAS_pheno_M1.txt", sep=""),
 	row.names=FALSE, quote=FALSE)
 
