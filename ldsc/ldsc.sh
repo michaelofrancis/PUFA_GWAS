@@ -36,13 +36,13 @@ for j in ${phenotypes[@]}
 for m in {1..2}
         do
 
-
+mkdir -p $outdir/M"$m"/"$j"
 
 #https://github.com/bulik/ldsc/wiki
 python $ldscdir/munge_sumstats.py \
 	--sumstats $sumdir/M"$m"/"$j"/BOLT1-statsFile-BgenSnps-m"$m"-ldsccols.transfer2 \
 	--N 118000 \
-	--out $outdir/w3test_mungesumstats \
+	--out $outdir/M"$m"/"$j"/"$j"_mungesumstats \
 	--merge-alleles $filedir2/w_hm3.snplist
 
 done
