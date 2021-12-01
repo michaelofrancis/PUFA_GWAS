@@ -122,7 +122,7 @@ new<-new[!(new$IID %in% withdrawn$V1), ]
 
 #QC participants via output of UKB_participantQC.R----------------
 
-new<-new[!(new$IID %in% QCids$V1),]
+new<-new[(new$IID %in% QCids$IID),]
 
 #Age squared----------------------------
 new$Age2<-new$Age^2
