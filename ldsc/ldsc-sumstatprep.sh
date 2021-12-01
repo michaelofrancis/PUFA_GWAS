@@ -52,11 +52,9 @@ for m in {1..2}
 
 
 awk 'BEGIN{FS=OFS="\t"}{if(strtonum($12)<4.94066e-324) print $0,strtonum(0);else{print $0,$12}}' \
-	$sumdir/M"$m"/"$j"/BOLT1-statsFile-BgenSnps-m"$m"-ldsccols > \
-	$sumdir/M"$m"/"$j"/BOLT1-statsFile-BgenSnps-m"$m"-ldsccols.transfer
+	$sumdir/M"$m"/"$j"/BOLT1-statsFile-BgenSnps-m"$m"-ldsccols > $sumdir/M"$m"/"$j"/BOLT1-statsFile-BgenSnps-m"$m"-ldsccols.transfer
 
-sed -e '1s/0/P/' $sumdir/M"$m"/"$j"/BOLT1-statsFile-BgenSnps-m"$m"-ldsccols.transfer > \
-        $sumdir/M"$m"/"$j"/BOLT1-statsFile-BgenSnps-m"$m"-ldsccols.transfer2
+sed -e '1s/0/P/' $sumdir/M"$m"/"$j"/BOLT1-statsFile-BgenSnps-m"$m"-ldsccols.transfer > $sumdir/M"$m"/"$j"/BOLT1-statsFile-BgenSnps-m"$m"-ldsccols.transfer2
 
 done
 done
