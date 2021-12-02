@@ -129,10 +129,10 @@ beforeloop<-new
 
 popin<-c("AFR", "CSA", "EAS")
 
-for (p in 1:length(popin)){
+for (pop in 1:length(popin)){
 #p=1
 QCids<-read.table(paste("/work/kylab/mike/PUFA-GWAS/UKB-multi-ancestry/pheno/bd_QC-keep.",
-                popin[p], ".txt", sep=""), header=TRUE)
+                popin[pop], ".txt", sep=""), header=TRUE)
 
 
 
@@ -264,7 +264,7 @@ phenotypes<-c("w3FA_NMR","w3FA_NMR_TFAP",
 resdat<-matrix(NA,nrow(new),length(phenotypes))
 colnames(resdat)<-phenotypes
 
-temp_subset<-new%>%select(Age,Age2, Sex, Geno_batch, keepcenter)
+temp_subset<-new%>%select(Age,Age2, Sex, Geno_batch, all_of(keepcenter))
 
 for (p in 1:length(phenotypes)){
     assign(paste("lm", phenotypes[p], sep="_"), 
@@ -320,7 +320,7 @@ participants1<-participants1%>%select(FID, IID)
 resdat2<-matrix(NA,nrow(new),length(phenotypes))
 colnames(resdat2)<-phenotypes
 
-temp_subset2<-new%>%select(Age,Age2, Sex, Geno_batch, keepcenter, BMI, Townsend, statins)
+temp_subset2<-new%>%select(Age,Age2, Sex, Geno_batch, all_of(keepcenter), BMI, Townsend, statins)
 
 for (p in 1:length(phenotypes)){
     assign(paste("lm", phenotypes[p], sep="_"),
@@ -368,20 +368,20 @@ dir.create(outdir, showWarnings=F, recursive=T)
 
 #Model 1
 write.table(participants1, 
-	paste(outdir, "/PUFA_GWAS_phenoQC_IDS_M1.", popin[p], ".txt",sep=""), 
+	paste(outdir, "/PUFA_GWAS_phenoQC_IDS_M1.", popin[pop], ".txt",sep=""), 
 	row.names=FALSE, quote=FALSE)
 
 write.table(new1, 
-	paste(outdir, "/PUFA_GWAS_pheno_M1.", popin[p], ".txt", sep=""),
+	paste(outdir, "/PUFA_GWAS_pheno_M1.", popin[pop], ".txt", sep=""),
 	row.names=FALSE, quote=FALSE)
 
 #Model 2
 write.table(participants2,
-        paste(outdir, "/PUFA_GWAS_phenoQC_IDS_M2.", popin[p], ".txt",sep=""),
+        paste(outdir, "/PUFA_GWAS_phenoQC_IDS_M2.", popin[pop], ".txt",sep=""),
         row.names=FALSE, quote=FALSE)
 
 write.table(new2,
-        paste(outdir, "/PUFA_GWAS_pheno_M2.", popin[p], ".txt", sep=""),
+        paste(outdir, "/PUFA_GWAS_pheno_M2.", popin[pop], ".txt", sep=""),
         row.names=FALSE, quote=FALSE)
 
 } #end population loop
