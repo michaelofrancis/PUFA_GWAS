@@ -30,7 +30,7 @@ step7=false
 #step7=true
 #---------
 
-popin<-("AFR" "CSA" "EAS")
+popin=("AFR" "CSA" "EAS")
 
 FOR LOOP ANCESTRIES
 for p in ${popin[@]} 
