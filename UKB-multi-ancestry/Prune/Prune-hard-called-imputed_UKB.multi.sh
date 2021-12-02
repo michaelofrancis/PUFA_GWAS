@@ -32,7 +32,7 @@ step7=false
 
 popin=("AFR" "CSA" "EAS")
 
-FOR LOOP ANCESTRIES
+#FOR LOOP ANCESTRIES
 for p in ${popin[@]} 
 	do
 
