@@ -62,6 +62,7 @@ start_time <- Sys.time()
 CMplot(dat, 
        type="p",
        plot.type="c", #circular
+       LOG10=T, #change P vals into log 
        band=0.8, #space between chromosomes
        r=2, #radius of circle
        cir.legend=T, #whether to include legend of each circle (P value labels and lines)
@@ -70,8 +71,11 @@ CMplot(dat,
        cir.legend.col="black",
        cir.chr.h=1, #width of chromosome boundary
        chr.den.col="grey", #color of chromosome boundary
-       threshold = 5e-08,
-       threshold.col = "red",
+       chr.labels=paste("Chr", 1:22, sep=""), #labels for chromosomes
+       threshold = c(5e-08, 5e-300), #set the second number too high to get rid of grey lines
+       threshold.col = c("red", "green"),
+       threshold.lty = 2, #threshold line type.
+       amplify=F, #make significant points (re threshold) bigger 
        file="jpg",
        memo="",
        dpi=300,
