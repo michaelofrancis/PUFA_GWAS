@@ -1,7 +1,47 @@
-#install.packages("CMplot")
-library(CMplot)
-library(tidyverse)
-#https://github.com/YinLiLin/CMplot/blob/master/User%20Manual%20for%20CMplot.pdf
+library(manhattan) #https://github.com/boxiangliu/manhattan/blob/master/vignettes/manhattan.pdf
+suppressMessages(library(CMplot)) #https://github.com/YinLiLin/CMplot/blob/master/User%20Manual%20for%20CMplot.pdf
+suppressMessages(library(tidyverse))
+library(ggrepel)
+
+indir<-"/scratch/mf91122/PUFA-GWAS/METAL/M2/STDERR-postprocess"
+
+pheno<-c("FAw3", "FAw6", "DHA", "LA", "MUFA")
+
+file<-list()
+file2<-list()
+for (p in 1:length(pheno)){
+#p=1
+
+file[[p]]<-as_tibble(read.table(paste(indir, "/META_IVW_", pheno[p], ".STDERR1.POSTPROCESS.Nb.txt", 
+			sep=""),
+			header=T, stringsAsFactors=F))
+
+
+file2[[p]]<-file[[p]]%>%select(SNP, CHR, BP, P)
+
+if (min(file2[[p]]$P)==0){
+    file2[[p]]$P[file2[[p]]$P==0]<-min(file2[[p]]$P[file2[[p]]$P != min(file2[[p]]$P)])
+}
+
+if (max(file2[[p]]$P)==1){
+file2[[p]]$P[file2[[p]]$P==1]<-max(file2[[p]]$P[file2[[p]]$P != max(file2[[p]]$P)])
+}
+
+#file2[[p]]$logP=-log10(file2[[p]]$P)
+colnames(file2[[p]])<-c("SNP", "CHR", "BP", paste("P_", pheno[p], sep=""))
+#, paste("logP_", pheno[p], sep=""))
+
+}
+
+dat<-inner_join(file2[[1]], file2[[2]], by=c("SNP", "CHR", "BP"))
+dat<-inner_join(dat, file2[[3]], by=c("SNP", "CHR", "BP")) 
+dat<-inner_join(dat, file2[[4]], by=c("SNP", "CHR", "BP"))
+dat<-inner_join(dat, file2[[5]], by=c("SNP", "CHR", "BP"))
+
+write.csv(dat, "/scratch/mf91122/PUFA-GWAS/METAL/M2/STDERR-postprocess/plot3/CMplot.csv",
+	row.names=F, quote=F)
+
+#***************************
 
 dat<-read.csv("/Users/mike/Documents/Research/PUFA-GWAS/CMplot.csv")
 dat<-as_tibble(dat)
