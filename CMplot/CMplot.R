@@ -70,15 +70,21 @@ CMplot(dat,
        cex=0.3, #dot size
        cir.legend.col="black",
        cir.chr.h=1, #width of chromosome boundary
-       chr.den.col="grey", #color of chromosome boundary
+       chr.den.col="grey85", #color of chromosome boundary
        chr.labels=paste("Chr", 1:22, sep=""), #labels for chromosomes
        threshold = c(5e-08, 5e-300), #set the second number too high to get rid of grey lines
-       threshold.col = c("red", "green"),
+       threshold.col = c("red4", "green"),
        threshold.lty = 2, #threshold line type.
        amplify=F, #make significant points (re threshold) bigger 
        file="jpg",
        memo="",
        dpi=300,
+       col=matrix(c("mediumorchid3", "mediumpurple3", #innermost phenotype alternating colors (MUFA)
+                    "goldenrod2", "darkgoldenrod3", 
+                    "olivedrab3", "chartreuse3", 
+                    "sienna3", "brown3", 
+                    "cadetblue3","lightskyblue3"), #outermost 
+                        nrow=5, byrow=T),
        file.output=TRUE,
        verbose=TRUE,
        width=10,
