@@ -1,4 +1,5 @@
 #Cycle through lead SNPs and find previously reported SNPs in LD in the GWAS catalog.
+#wont work if nsnps < cap ..?
 
 tok="6a30732e002f"
 outdir<-"/scratch/mf91122/PUFA-GWAS/novelty/discovery"
