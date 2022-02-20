@@ -30,31 +30,27 @@ set<-files[grepl(phenotypes[p],files)]
 tis<-str_split(set, "__", simplify=T)[,3]
 tis<-str_split(tis, ".csv", simplify=T)[,1]
 
+#Read in data from many tissues for one phenotype
 part4<-list()
 for (i in 1:length(set)){
 
 	part4[[i]]<-as_tibble(read.csv(set[i], header=T))
-
+	part4[[i]]$tissue<-tis[i]
+	
 }
-names(part4)<-tis
 
-#count number of genes tested to get bf correction number---
-sum<-0
-for (i in 1:length(set)){
-sum=sum+length(unique(part4[[i]]$gene_name))
-}
+part4<-do.call(rbind, part4)
+part4<-part4[!is.na(part4$pvalue),]
+
+#count number of gene-tissue combinations tested to get bf correction number---
+sum<-nrow(unique(part4[c(2,15)]))
 print(paste(phenotypes[p], sum))
-#[1] 602072
 Pcutoff=0.05/sum
 #------
 
-part4sig<-list()
-for (i in 1:length(set)){
-	part4sig[[i]]<-part4[[i]][part4[[i]]$pvalue<Pcutoff,]
-	part4sig[[i]]$tissue<-tis[i]
-}
-part4sig<-do.call(rbind, part4sig)
-part4sig$Phenotype<-phenotypenames[p]
+part4$Phenotype<-phenotypenames[p]
+
+part4sig<-part4[part4$pvalue<Pcutoff,]
 
 phenoresults[[p]]<-part4sig
 
@@ -63,7 +59,7 @@ phenoresults[[p]]<-part4sig
 phenoresults<-do.call(rbind, phenoresults)
 
 phenoresults<-phenoresults%>%select(Phenotype, tissue, gene, gene_name, zscore, pvalue, var_g, n_snps_used, n_snps_in_model)
-write.csv(phenoresults, paste(dir4, "/significant.csv", sep=""), row.names=F, quote=F)
+write.csv(phenoresults, paste(dir4, "/significant.04.SPrediXcan.csv", sep=""), row.names=F, quote=F)
 
 ##05.SMultiXcan----------------------------------------------------------------
 
@@ -74,7 +70,8 @@ filenames<-list.files(dir5)
 #Read in tables
 part5<-list()
 for (i in 1:length(files)){
-part5[[i]]<-as_tibble(read.table(files[i], header=T))
+	part5[[i]]<-as_tibble(read.table(files[i], header=T))
+	part5[[i]]<-part5[[i]][! is.na(part5[[i]]$pvalue) ,]
 }
 
 #Get names for tables
@@ -103,4 +100,4 @@ for (i in 1:length(files)){
 
 part5out<-do.call(rbind, part5sig)
 
-write.csv(part5out, paste(dir5, "/significant.SMultiXcan.csv", sep=""), row.names=F, quote=F)
+write.csv(part5out, paste(dir5, "/significant.05.SMultiXcan.csv", sep=""), row.names=F, quote=F)
