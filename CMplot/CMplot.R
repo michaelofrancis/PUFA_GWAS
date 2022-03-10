@@ -1,47 +1,8 @@
-library(manhattan) #https://github.com/boxiangliu/manhattan/blob/master/vignettes/manhattan.pdf
-suppressMessages(library(CMplot)) #https://github.com/YinLiLin/CMplot/blob/master/User%20Manual%20for%20CMplot.pdf
-suppressMessages(library(tidyverse))
-library(ggrepel)
+#install.packages("CMplot")
 
-indir<-"/scratch/mf91122/PUFA-GWAS/METAL/M2/STDERR-postprocess"
-
-pheno<-c("FAw3", "FAw6", "DHA", "LA", "MUFA")
-
-file<-list()
-file2<-list()
-for (p in 1:length(pheno)){
-#p=1
-
-file[[p]]<-as_tibble(read.table(paste(indir, "/META_IVW_", pheno[p], ".STDERR1.POSTPROCESS.Nb.txt", 
-			sep=""),
-			header=T, stringsAsFactors=F))
-
-
-file2[[p]]<-file[[p]]%>%select(SNP, CHR, BP, P)
-
-if (min(file2[[p]]$P)==0){
-    file2[[p]]$P[file2[[p]]$P==0]<-min(file2[[p]]$P[file2[[p]]$P != min(file2[[p]]$P)])
-}
-
-if (max(file2[[p]]$P)==1){
-file2[[p]]$P[file2[[p]]$P==1]<-max(file2[[p]]$P[file2[[p]]$P != max(file2[[p]]$P)])
-}
-
-#file2[[p]]$logP=-log10(file2[[p]]$P)
-colnames(file2[[p]])<-c("SNP", "CHR", "BP", paste("P_", pheno[p], sep=""))
-#, paste("logP_", pheno[p], sep=""))
-
-}
-
-dat<-inner_join(file2[[1]], file2[[2]], by=c("SNP", "CHR", "BP"))
-dat<-inner_join(dat, file2[[3]], by=c("SNP", "CHR", "BP")) 
-dat<-inner_join(dat, file2[[4]], by=c("SNP", "CHR", "BP"))
-dat<-inner_join(dat, file2[[5]], by=c("SNP", "CHR", "BP"))
-
-write.csv(dat, "/scratch/mf91122/PUFA-GWAS/METAL/M2/STDERR-postprocess/plot3/CMplot.csv",
-	row.names=F, quote=F)
-
-#***************************
+library(CMplot)
+library(tidyverse)
+#https://github.com/YinLiLin/CMplot/blob/master/User%20Manual%20for%20CMplot.pdf
 
 dat<-read.csv("/Users/mike/Documents/Research/PUFA-GWAS/CMplot.csv")
 dat<-as_tibble(dat)
@@ -58,13 +19,48 @@ dat$P_LA[-log10(dat$P_LA)>cutoff]=1*10^(-cutoff)
 dat$P_MUFA[-log10(dat$P_MUFA)>cutoff]=1*10^(-cutoff)
 #nrow(dat[-log10(dat$P_MUFA)>cutoff,]) #[1] 3
 
-start_time <- Sys.time()
+#get order of SNPs
+dat<-dat%>%select(SNP,CHR,BP, P_MUFA, P_LA, P_FAw6, P_DHA, P_FAw3)
+
+
+novel<-as_tibble(read.csv("/Users/mike/Documents/Research/PUFA-GWAS/novelty/meta-analysis/Novel-CMplot.csv"))
+novel<-novel[novel$foundYT==0,]
+
+novel%>%group_by(Phenotype)%>%summarize(n=n())
+
+
+
+cutoff=100
+novel$P_FAw3[-log10(novel$P_FAw3)>cutoff]=1*10^(-cutoff)
+novel$P_FAw6[-log10(novel$P_FAw6)>cutoff]=1*10^(-cutoff)
+novel$P_DHA[-log10(novel$P_DHA)>cutoff]=1*10^(-cutoff)
+novel$P_LA[-log10(novel$P_LA)>cutoff]=1*10^(-cutoff)
+novel$P_MUFA[-log10(novel$P_MUFA)>cutoff]=1*10^(-cutoff)
+
+
+
+novel<-novel%>%select(rsID,chr,pos, P_MUFA, P_LA, P_FAw6, P_DHA, P_FAw3)
+colnames(novel)[1:3]<-c("SNP", "CHR", "BP")
+novel
+
+
+toHighlight<-list()
+toHighlight[[1]]<-novel$SNP[novel$P_MUFA<5e-08]
+toHighlight[[2]]<-novel$SNP[novel$P_LA<5e-08]
+toHighlight[[3]]<-novel$SNP[novel$P_FAw6<5e-08]
+toHighlight[[4]]<-novel$SNP[novel$P_DHA<5e-08]
+toHighlight[[5]]<-novel$SNP[novel$P_FAw3<5e-08]
+toHighlight 
+
+
+
+        start_time <- Sys.time()
 CMplot(dat, 
        type="p",
        plot.type="c", #circular
        LOG10=T, #change P vals into log 
        band=0.8, #space between chromosomes
-       r=2, #radius of circle
+       r=3, #radius of circle
        cir.legend=T, #whether to include legend of each circle (P value labels and lines)
        outward=TRUE, #dots go out or in
        cex=0.3, #dot size
@@ -76,15 +72,26 @@ CMplot(dat,
        threshold.col = c("red4", "green"),
        threshold.lty = 2, #threshold line type.
        amplify=F, #make significant points (re threshold) bigger 
+       
+       highlight=toHighlight,
+       highlight.col = "red3",
+       highlight.pch=17,#1=circle, 2=triangle, 3 = x, 4 = x, 5= diamond, 
+       #6 = down triangle, 7 = cross out circle, 8=asterisk, 9=diamondcrosshairs,
+       #10=circle crosshairs, 11=starofdavid, 12=4square, 13 crosshairs,14=trianglesquare,
+       #15=filled square, 16=filled circle; 17=filled triangle; 18=filledsquare
+       #19=filled circle, 20=filled circle
+       highlight.cex = 0.8,
+       #ylim=c(0,100),
+       
        file="jpg",
        memo="",
-       dpi=300,
-       col=matrix(c("mediumorchid3", "mediumpurple3", #innermost phenotype alternating colors (MUFA)
-                    "goldenrod2", "darkgoldenrod3", 
-                    "olivedrab3", "chartreuse3", 
-                    "sienna3", "brown3", 
-                    "cadetblue3","lightskyblue3"), #outermost 
-                        nrow=5, byrow=T),
+       dpi=600, #set higher when ur ready to make a nice one (600 or more?)
+       col=matrix(c("purple3","mediumpurple3",  #MUFA /innermost phenotype alternating colors (MUFA)
+                    "gold2","gold",  #LA
+                    "tan3","tan2",  #w6
+                    "chartreuse3", "olivedrab3",   #DHA 
+                    "turquoise3","turquoise2"), #w3 / outermost 
+                  nrow=5, byrow=T),
        file.output=TRUE,
        verbose=TRUE,
        width=10,
