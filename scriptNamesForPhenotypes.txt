@@ -1,0 +1,15 @@
+NMR phenotypes	name in scripts
+Omega-3 Fatty Acids	w3FA_NMR
+Omega-3 Fatty Acids to Total Fatty Acids percentage	w3FA_NMR_TFAP
+Omega-6 Fatty Acids	w6FA_NMR
+Omega-6 Fatty Acids to Total Fatty Acids percentage	w6FA_NMR_TFAP
+Omega-6 Fatty Acids to Omega-3 Fatty Acids ratio	w6_w3_ratio_NMR
+Docosahexaenoic Acid	DHA_NMR
+Docosahexaenoic Acid to Total Fatty Acids percentage	DHA_NMR_TFAP
+Linoleic Acid	LA_NMR
+Linoleic Acid to Total Fatty Acids percentage	LA_NMR_TFAP
+Polyunsaturated Fatty Acids	PUFA_NMR
+Polyunsaturated Fatty Acids to Total Fatty Acids percentage	PUFA_NMR_TFAP
+Monounsaturated Fatty Acids	MUFA_NMR
+Monounsaturated Fatty Acids to Total Fatty Acids percentage	MUFA_NMR_TFAP
+Polyunsaturated Fatty Acids to Monounsaturated Fatty Acids ratio	PUFA_MUFA_ratio_NMR
