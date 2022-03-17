@@ -17,6 +17,11 @@ pheno<-c("w3FA_NMR","w3FA_NMR_TFAP",
 
 pheno<-paste(pheno, "_resinv", sep="")
 
+phenotypenames<-c("Omega-3", "Omega-3 (TFAP)", "Omega-6" , "Omega-6 (TFAP)",
+                "Omega-6:Omega-3 ratio", "DHA", "DHA (TFAP)", "LA", "LA (TFAP)",
+                "PUFAs", "PUFAs (TFAP)", "MUFAs", "MUFAs (TFAP)", "PUFAs:MUFAs ratio")
+
+
 
 TWASdir<-"/scratch/mf91122/PUFA-GWAS/SMultiXcan/huifang2"
 
@@ -32,7 +37,7 @@ for (p in 1:length(pheno)){
 #p=1
 
 #Load SMultiXcan output and get positions from gene names
-file<-as_tibble(read.table(paste(TWASdir, "/05.", pheno[p],".M2.txt.tab_smultixcan.txt",sep=""),
+file<-as_tibble(read.table(paste(TWASdir, "/05.SMultiXcan/05.", pheno[p],".M2.txt.tab_smultixcan.txt",sep=""),
 		header=T, stringsAsFactors=F))
 
 file$ensembl_gene_id <- gsub("\\..*","", file$gene)
@@ -89,7 +94,7 @@ dat$chrom<-paste("chr", dat$chrom, sep="")
 
 
 #Make plot
-plotoutputpath=paste("/scratch/mf91122/PUFA-GWAS/SMultiXcan/huifang2/plot/05." ,
+plotoutputpath=paste("/scratch/mf91122/PUFA-GWAS/SMultiXcan/huifang2/plot2/05." ,
 			pheno[p], "_SMultiXcan.png", sep="")
 
 png(filename=plotoutputpath, type="cairo",
@@ -100,9 +105,10 @@ print(
 manhattan(
 dat, 
 build='hg19',
-color1='skyblue',color2='navyblue')+
+color1='#0CEBA8',color2='#066C4E') +
 
-geom_hline(yintercept=-log10(5e-8),color='red')
+geom_hline(yintercept=-log10(5e-8),color='red')+
+ggtitle(paste("UKB-EUR SMultiXcan ", phenotypenames[p], sep="")) 
 	+geom_label_repel(
 			aes(label=Label),
 			colour='black',
