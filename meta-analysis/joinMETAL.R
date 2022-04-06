@@ -44,6 +44,8 @@ joinM$Freq1_METAL[joinM$NEA==joinM$EA_METAL & joinM$EA==joinM$NEA_METAL]= 1-join
 joinM$Effect_METAL[joinM$NEA==joinM$EA_METAL & joinM$EA==joinM$NEA_METAL]= -joinM$Effect_METAL[joinM$NEA==joinM$EA_METAL & joinM$EA==joinM$NEA_METAL]
 
 joinM<-joinM%>%select(-EA_METAL, -NEA_METAL, -Direction_METAL)
+        
+joinM<-joinM%>%rowwise()%>%mutate(Ntotal=sum(N_UKB, N_KET, NSTUDY_MET, na.rm=TRUE))
 
 write.table(joinM, paste("/scratch/mf91122/PUFA-GWAS/sumstats-final/UKBEURKETMET/", pheno[i], ".UKBEURKETMET.txt", sep=""),
                 quote=F, row.names=F, fileEncoding = "ascii")
