@@ -10,9 +10,9 @@ pheno2<-c("w3FA", "w6FA", "DHA", "LA", "MUFA")
 #i=1
 for (i in 1:length(pheno)){
 
-join3<-as_tibble(read.table(
-        paste("/scratch/mf91122/PUFA-GWAS/PUFA-GWAS-replication/munge/UKBEURKETMET.mungecombined.metalinput/", pheno[i], ".UKBEURKETMET.mungedcombined.metalinput.txt", sep=""),
-        header=T))
+join3<-as_tibble(read.table( 
+	paste("/scratch/mf91122/PUFA-GWAS/PUFA-GWAS-replication/munge/UKBEURKETMET.mungecombined.metalinput/", pheno[i], ".UKBEURKETMET.mungedcombined.metalinput.txt", sep=""),
+	header=T))
 
 
 METAL<-as_tibble(read.table(
@@ -44,10 +44,44 @@ joinM$Freq1_METAL[joinM$NEA==joinM$EA_METAL & joinM$EA==joinM$NEA_METAL]= 1-join
 joinM$Effect_METAL[joinM$NEA==joinM$EA_METAL & joinM$EA==joinM$NEA_METAL]= -joinM$Effect_METAL[joinM$NEA==joinM$EA_METAL & joinM$EA==joinM$NEA_METAL]
 
 joinM<-joinM%>%select(-EA_METAL, -NEA_METAL, -Direction_METAL)
-        
+
 joinM<-joinM%>%rowwise()%>%mutate(Ntotal=sum(N_UKB, N_KET, NSTUDY_MET, na.rm=TRUE))
 
-write.table(joinM, paste("/scratch/mf91122/PUFA-GWAS/sumstats-final/UKBEURKETMET/", pheno[i], ".UKBEURKETMET.txt", sep=""),
-                quote=F, row.names=F, fileEncoding = "ascii")
+write.table(joinM, paste("/scratch/mf91122/PUFA-GWAS/sumstats-final/UKBEURKETMET/", pheno[i], ".UKBEURKETMET.txt", sep=""), 
+		quote=F, row.names=F, fileEncoding = "ascii")
+
+for (i in 1:5){
+joinM<-as_tibble(read.table(
+        paste("/scratch/mf91122/PUFA-GWAS/sumstats-final/UKBEURKETMET/", pheno[i], 
+	".UKBEURKETMET.txt", sep=""),header=T))
+
+
+#Prepare .ma file for COJO
+
+ma<-joinM%>%select(SNP, EA,NEA, Freq1_METAL, Effect_METAL, StdErr_METAL, P.value_METAL, Ntotal)
+
+colnames(ma)<-c("SNP", "A1", "A2", "freq", "b", "se", "p", "N")
+
+write.table(ma,
+	paste("/scratch/mf91122/PUFA-GWAS/sumstats-final/UKBEURKETMET/maCOJO/", pheno[i],
+        ".UKBEURKETMET.ma", sep=""),quote=F, row.names=F)
+
+
+#Prepare FUMA input--------------------------------------------------------------------------------------
+#Just METAL into the FUMA input since it's too big with the full file
+
+FUMAin<-joinM%>%select(SNP, CHR, BP, NEA,EA,Freq1_METAL,FreqSE_METAL, Effect_METAL, StdErr_METAL,P.value_METAL, Ntotal)
+colnames(FUMAin)<-c("SNP", "CHR", "BP", "non_effect_allele", "effect_allele", "FRQ", "FRQ_SE", "Beta", "SE", "P", "N")
+
+FUMAin$BP<-as.integer(FUMAin$BP)
+
+FUMAin$P[FUMAin$P<1e-300]=1e-300
+
+gz<-gzfile(paste(
+	"/scratch/mf91122/PUFA-GWAS/sumstats-final/UKBEURKETMET/FUMAin/",
+                pheno[i], ".UKBEURKETMET.FUMAin.txt.gz", sep=""))
+
+write.table(FUMAin,gz,quote=F, row.names=F, fileEncoding = "ascii")
 
 }
+
