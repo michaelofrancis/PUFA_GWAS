@@ -1,81 +1,36 @@
-#Cycle through lead SNPs and find SNPs in LD in the GWAS catalog.
-
+#Cycle through lead SNPs and find previously reported SNPs in LD in the GWAS catalog.
 
 tok="6a30732e002f"
+outdir<-"/scratch/mf91122/PUFA-GWAS/novelty/LDtrait-again"
 
-dir.create("/scratch/mf91122/PUFA-GWAS/LDlinkR", showWarnings=F)
-setwd("/scratch/mf91122/PUFA-GWAS/LDlinkR")
+dir.create(outdir, showWarnings=F)
+setwd(outdir)
 library(LDlinkR)
 suppressMessages(library(dplyr))
 
-phenotypes<-c("w3FA_NMR","w3FA_NMR_TFAP",
-                "w6FA_NMR", "w6FA_NMR_TFAP",
-                "w6_w3_ratio_NMR",
-                "DHA_NMR","DHA_NMR_TFAP",
-                "LA_NMR","LA_NMR_TFAP",
-                "PUFA_NMR","PUFA_NMR_TFAP",
-                "MUFA_NMR", "MUFA_NMR_TFAP",
-                "PUFA_MUFA_ratio_NMR")
 
+#Set params--
+window=1000000
+#------------
 
-FUMA<-as_tibble(read.csv("/work/kylab/mike/PUFA-GWAS/FUMA/GenomicLoci12112021.csv",
+FUMA<-as_tibble(read.csv("/work/kylab/mike/PUFA-GWAS/FUMA-final/GenomicLoci-DISC-04092022.csv",
 		header=T, stringsAsFactors=F))
+FUMAm<-as_tibble(read.csv("/work/kylab/mike/PUFA-GWAS/FUMA-final/GenomicLoci-MA-UKBEUR-MET-KET-04132022.csv",
+                header=T, stringsAsFactors=F))
 
-#loop
-for (p in 1:length(phenotypes)){
-#p=1
-leadvars<-FUMA[FUMA$Phenotype==phenotypes[p],]
-#leadvars$rsID[!grepl("rs", leadvars$rsID)]<-paste("chr", 
-#		leadvars$chr[!grepl("rs", leadvars$rsID)], 
-#		":", leadvars$pos[!grepl("rs", leadvars$rsID)], sep="")
-
-leadvars<-leadvars[grepl("rs", leadvars$rsID),]
-
-sets<-ceiling(nrow(leadvars)/50)
-outdir<-"/scratch/mf91122/PUFA-GWAS/LDlinkR/12112021/"
-
-if (sets>1){ #multiple sets
-	x=1
-	while(x<sets){
-        print(paste("x is ", x))
-
-        y=x*50
-        temp<-leadvars[(y-49):y,]
-
-        leadsnps<-temp$rsID
-        fileoutput<-paste(outdir, phenotypes[p],
-                "-LDlinkR-", x, ".txt", sep="")
-
-        LDtrait(leadsnps,pop = "GBR", r2d = "r2", r2d_threshold = 0.1,
-        win_size = 5e+05, token = tok, file = fileoutput)
-
-        x=x+1
-	}#end while
-
-	print("after end while")
-        temp<-leadvars[ (((sets-1)*50)+1): nrow(leadvars),]
-
-        leadsnps<-temp$rsID
-        fileoutput<-paste(outdir, phenotypes[p],
-               "-LDlinkR-", x, ".txt", sep="")
-
-        LDtrait(leadsnps,pop = "GBR",r2d = "r2",r2d_threshold = 0.1,
-        win_size = 5e+05, token = tok, file = fileoutput)
-
-} else { #not multiple sets
-
-print("else not multiple sets")
-leadsnps<-leadvars$rsID
-
-fileoutput<-paste(outdir, phenotypes[p],
-                "-LDlinkR.txt", sep="")
-LDtrait(leadsnps, pop = "GBR", r2d = "r2", r2d_threshold = 0.1,
-        win_size = 5e+05, token = tok, file = fileoutput)
-}#end else
+rsID<-unique(FUMA$rsID)
+rsID2<-unique(FUMAm$rsID)
+rsID<-unique(c(rsID, rsID2))
 
 
-} #end phenotype loop
+for (x in rsID){
 
+        fileoutput<-paste(outdir, "/LDtrait-", x, ".", window,".txt", sep="")
 
-#x<-read.delim("/scratch/mf91122/PUFA-GWAS/LDlinkR/w3FA_NMR-LDlinkR.txt")
-#x<-as_tibble(x)
+	tryCatch({
+	print(x)
+        LDtrait(x,pop = "EUR", r2d = "r2", r2d_threshold = 0.1,
+        win_size = window, token = tok, file = fileoutput)
+	}, error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
+
+}
