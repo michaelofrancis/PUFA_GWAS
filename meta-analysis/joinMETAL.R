@@ -11,13 +11,19 @@ pheno2<-c("w3FA", "w6FA", "DHA", "LA", "MUFA")
 for (i in 1:length(pheno)){
 
 join3<-as_tibble(read.table( 
-	paste("/scratch/mf91122/PUFA-GWAS/PUFA-GWAS-replication/munge/UKBEURKETMET.mungecombined.metalinput/", pheno[i], ".UKBEURKETMET.mungedcombined.metalinput.txt", sep=""),
+	paste("/scratch/mf91122/PUFA-GWAS/PUFA-GWAS-replication/munge/UKBEURKETMET.mungecombined.metalinput/", 
+		pheno[i], ".UKBEURKETMET.mungedcombined.metalinput.txt", sep=""),
 	header=T))
 
 
 METAL<-as_tibble(read.table(
         paste("/scratch/mf91122/PUFA-GWAS/METAL/mungecombined/META_IVW_", pheno[i],"1.txt",sep=""),
         header=T))
+
+
+join3<-join3[!is.na(join3$P_KET) | !is.na(join3$P_MET),]
+
+
 
 #METAL alleles are default lowercase, set to upper
 METAL$Allele1<-toupper(METAL$Allele1)
@@ -27,7 +33,7 @@ METAL$Allele2<-toupper(METAL$Allele2)
 colnames(METAL)[2:11]<-paste(colnames(METAL)[2:11], "_METAL", sep="")
 
 
-joinM<-full_join(join3, METAL, by=c("SNP"="MarkerName"))
+joinM<-left_join(join3, METAL, by=c("SNP"="MarkerName"))
 
 #As of here: A2 is effect allele for join3, Allele1 is effect allele for METAL. Let's label them accordingly
 colnames(joinM)[4:5]<-c("NEA", "EA")
@@ -50,10 +56,29 @@ joinM<-joinM%>%rowwise()%>%mutate(Ntotal=sum(N_UKB, N_KET, NSTUDY_MET, na.rm=TRU
 write.table(joinM, paste("/scratch/mf91122/PUFA-GWAS/sumstats-final/UKBEURKETMET/", pheno[i], ".UKBEURKETMET.txt", sep=""), 
 		quote=F, row.names=F, fileEncoding = "ascii")
 
-for (i in 1:5){
-joinM<-as_tibble(read.table(
-        paste("/scratch/mf91122/PUFA-GWAS/sumstats-final/UKBEURKETMET/", pheno[i], 
-	".UKBEURKETMET.txt", sep=""),header=T))
+		
+
+
+#joinM<-as_tibble(read.table(
+ #       paste("/scratch/mf91122/PUFA-GWAS/sumstats-final/UKBEURKETMET/", pheno[i], 
+#	".UKBEURKETMET.txt", sep=""),header=T))
+
+#Prepare LDSC format for meta-analysis results
+	ldsc<-joinM%>%select(SNP, CHR, BP, EA,NEA, 
+		Freq1_METAL, Effect_METAL, StdErr_METAL, P.value_METAL, Ntotal)
+	colnames(ldsc)<-c("SNP", "CHR","BP", "EFFECT_ALLELE", "NON_EFFECT_ALLELE",
+                "EFFECT_ALLELE_FRQ","BETA","SE", "P", "N")
+
+        reformatted<-MungeSumstats::format_sumstats(path=ldsc, ref_genome="GRCh37", ldsc_format=T,
+                INFO_filter=0.3)
+
+        refo<-as_tibble(read.table(reformatted, header=T))
+        #Remove infinite Z values
+        refo<-refo[!is.infinite(refo$Z),]
+
+	write.table(refo, paste("/scratch/mf91122/PUFA-GWAS/sumstats-final/UKBEURKETMET/ldsc/", pheno[i], 
+		".UKBEURKETMET.txt", sep=""),
+                quote=F, row.names=F)
 
 
 #Prepare .ma file for COJO
@@ -62,13 +87,23 @@ ma<-joinM%>%select(SNP, EA,NEA, Freq1_METAL, Effect_METAL, StdErr_METAL, P.value
 
 colnames(ma)<-c("SNP", "A1", "A2", "freq", "b", "se", "p", "N")
 
+#------------------------
+#Line to fix the GCTA-COJO precision bug
+#See: https://gcta.freeforums.net/thread/518/cojo-slct-selecting-lowest-value
+ma$se<-abs(ma$b/qnorm(ma$p/2, lower.tail=F))
+ma$se[is.na(ma$se)]<-0
+#range(ma$p[(ma$se2-ma$se>0.05)])
+#[1] 0.9991 0.9999
+#------------------------
+
+
 write.table(ma,
 	paste("/scratch/mf91122/PUFA-GWAS/sumstats-final/UKBEURKETMET/maCOJO/", pheno[i],
         ".UKBEURKETMET.ma", sep=""),quote=F, row.names=F)
 
 
 #Prepare FUMA input--------------------------------------------------------------------------------------
-#Just METAL into the FUMA input since it's too big with the full file
+#Just METAL columns into the FUMA input since it's too big with the full file
 
 FUMAin<-joinM%>%select(SNP, CHR, BP, NEA,EA,Freq1_METAL,FreqSE_METAL, Effect_METAL, StdErr_METAL,P.value_METAL, Ntotal)
 colnames(FUMAin)<-c("SNP", "CHR", "BP", "non_effect_allele", "effect_allele", "FRQ", "FRQ_SE", "Beta", "SE", "P", "N")
@@ -84,4 +119,3 @@ gz<-gzfile(paste(
 write.table(FUMAin,gz,quote=F, row.names=F, fileEncoding = "ascii")
 
 }
-
