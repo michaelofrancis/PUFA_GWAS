@@ -4,7 +4,59 @@ dir<-"/scratch/mf91122/PUFA-GWAS/PUFA-GWAS-replication"
 
 pheno<-c("FAw3", "FAw6", "DHA", "LA", "MUFA")
 
-#Replication table of UKB-EUR with external EUR studies
+pheno2<-c("w3FA", "w6FA", "DHA", "LA", "MUFA")
+
+
+#Replication of UKB-EUR with external EUR studies
+replicated<-list()
+for (i in 1:length(pheno)) {
+join3<-as_tibble(read.table(paste("/scratch/mf91122/PUFA-GWAS/PUFA-GWAS-replication/munge/UKBEURKETMET.mungecombined.metalinput/",
+                pheno[i],".UKBEURKETMET.mungedcombined.metalinput.txt", sep=""), header=T))
+cat(
+    pheno[i],
+    "nrow table: ", nrow(join3),
+    "Variants in UKB-EUR (munged):",nrow(join3[!is.na(join3$P_UKB),]),
+    "Significant variants UKB-EUR: ", nrow(join3%>%filter(P_UKB < 1.678e-08)),
+    "Variants in FinMetseq (munged): ", nrow(join3[!is.na(join3$P_MET),]),
+    "Overlapping variants UKB-EUR and FinMetSeq: ",
+        nrow(join3[!is.na(join3$P_UKB) & !is.na(join3$P_MET),]),
+    "Significant variants UKB-EUR replicated in FinMetSeq: ",
+        nrow(join3%>%filter(P_UKB < 1.678e-08 &
+                P_MET <0.05)),
+    "Variants in Ket (munged): ", nrow(join3[!is.na(join3$P_KET),]),
+    "Overlapping variants UKB-EUR and KET: ",
+        nrow(join3[!is.na(join3$P_UKB) & !is.na(join3$P_KET),]),
+    "Significant variants UKB-EUR replicated in KET: ",
+        nrow(join3%>%filter(P_UKB < 1.678e-08 &
+                P_KET <0.05)),
+"Significant variants UKB-EUR replicated in KET or MET: ",
+    
+    nrow(join3%>%filter(P_UKB < 1.678e-08 &(
+                P_KET <0.05 |
+                P_MET <0.05
+                )
+            )),
+"Significant variants UKB-EUR replicated in KET AND MET: ",
+    
+    nrow(join3%>%filter(P_UKB < 1.678e-08 &(
+                P_KET <0.05 &
+                P_MET <0.05
+                )
+            )),
+    #replicated[[i]]<-join3%>%filter(P_UKB < 1.678e-08 &(
+    #            P_KET <0.05 |
+    #            P_MET <0.05
+    #            )
+    #        ),
+
+            sep="\n"
+    
+)}
+
+
+
+
+
 
 cols<-c(
     "nrow table",
@@ -36,10 +88,11 @@ cols<-c(
 tab<-as.data.frame(matrix(nrow=5,ncol=length(cols)))
 colnames(tab)<-cols
 
-
+sig<-list()
 for (i in 1:length(pheno)) {
 join3<-as_tibble(read.table(paste("/scratch/mf91122/PUFA-GWAS/PUFA-GWAS-replication/munge/UKBEURKETMET.mungecombined.metalinput/",
                 pheno[i],".UKBEURKETMET.mungedcombined.metalinput.txt", sep=""), header=T))
+
 
 tab[i,]<-c(
     nrow(join3),
@@ -78,6 +131,21 @@ tab[i,]<-c(
                 )
             )))
 
+    sig[[i]]<-join3%>%filter(P_UKB < 1.678e-08 &(
+                P_KET <0.05 |
+                P_MET <0.05
+                ))
+
+
 }
+
+
+sig2<-do.call(rbind, sig)
+length(unique(sig2$SNP))
+#[1] 8543
+
+sig3<-sig2%>%filter(P_KET<0.05 & P_MET < 0.05)
+length(unique(sig3$SNP))
+#[1] 266
 
 write.csv(tab,"/scratch/mf91122/PUFA-GWAS/PUFA-GWAS-replication/munge/UKBEURKETMET.mungecombined.metalinput/replication.csv")
