@@ -26,7 +26,6 @@ phelabels<-c("Omega-3", "Omega-3_TFAP", "Omega-6", "Omega-6_TFAP",
 dirM1<-"/scratch/mf91122/PUFA-GWAS/BOLT-LMM/results/M1"
 dirM2<-"/scratch/mf91122/PUFA-GWAS/BOLT-LMM/results/M2"
 dirmulti<-"/scratch/mf91122/PUFA-GWAS/sumstats-final/multi-ancestry"
-outdir="/scratch/mf91122/PUFA-GWAS/sumstats-final/UKB"
 
 
 
@@ -67,8 +66,17 @@ tab<-as.data.frame(matrix(nrow=14,ncol=length(cols2)))
 colnames(tab)<-cols2
 
 
+sigA<-list()
+sigB<-list()
+sigC<-list()
+sigU<-list()
+sigU1<-list()
 
 for (p in 1:length(phenotypes)){
+
+	UKB1<-as_tibble(read_delim(
+        paste(dirM1, "/", phenotypes[p], "/BOLT1-statsFile-BgenSnps-m1", sep="")
+                                        ))
 
 
 	UKB<-as_tibble(read_delim(
@@ -127,4 +135,26 @@ tab[p,]<-c(
 
 )
 
+sigU[[p]]<-UKB%>%filter(P_BOLT_LMM<1.678e-08)
+
+sigU1[[p]]<-UKB1%>%filter(P_BOLT_LMM<1.678e-08)
+
+sigA[[p]]<-A%>%filter(P_BOLT_LMM < 1.678e-08 &
+                p <0.05)
+
+sigB[[p]]<-B%>%filter(P_BOLT_LMM < 1.678e-08 &
+                p <0.05)
+
+sigC[[p]]<-C%>%filter(P_BOLT_LMM < 1.678e-08 &
+                p <0.05)
+
+
 }#end pheno loop
+
+sigU<-do.call(rbind, sigU)
+length(unique(sigU$SNP))
+
+
+
+
+write.csv(tab,"/scratch/mf91122/PUFA-GWAS/PUFA-GWAS-replication/multi-ancestry-replication.csv", quote=F, row.names=F)
