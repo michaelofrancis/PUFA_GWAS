@@ -119,3 +119,33 @@ gz<-gzfile(paste(
 write.table(FUMAin,gz,quote=F, row.names=F, fileEncoding = "ascii")
 
 }
+
+#INPUT FOR CMPLOT (FIG 2)--------------------
+
+joinM<-list()
+for (i in 1:length(pheno)){
+joinM[[i]]<-as_tibble(read.table(paste("/scratch/mf91122/PUFA-GWAS/sumstats-final/UKBEURKETMET/", pheno[i], ".UKBEURKETMET.txt", $
+        header=T))
+}
+
+dat<-joinM[[1]][1:3]
+dat$P_FAw3<-joinM[[1]]$P.value_METAL
+
+dat<-joinM[[2]]%>%select(SNP, CHR, BP, P.value_METAL)%>%inner_join(dat)
+colnames(dat)[4]<-"P_FAw6"
+
+dat<-joinM[[3]]%>%select(SNP, CHR, BP, P.value_METAL)%>%inner_join(dat)
+colnames(dat)[4]<-"P_DHA"
+
+dat<-joinM[[4]]%>%select(SNP, CHR, BP, P.value_METAL)%>%inner_join(dat)
+colnames(dat)[4]<-"P_LA"
+
+dat<-joinM[[5]]%>%select(SNP, CHR, BP, P.value_METAL)%>%inner_join(dat)
+colnames(dat)[4]<-"P_MUFA"
+
+dat<-dat%>%select(SNP, CHR, BP, paste("P_", pheno, sep=""))
+
+write.csv(dat, "/scratch/mf91122/PUFA-GWAS/sumstats-final/UKBEURKETMET/CMplot-04162022.csv",
+        row.names=F, quote=F)
+
+
