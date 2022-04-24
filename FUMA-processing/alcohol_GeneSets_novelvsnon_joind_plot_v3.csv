@@ -1,0 +1,9 @@
+GeneSet,	Phenotype,	P,	adjP,	Proportion_overlapping_genes
+Alcohol use disorder (total score),	w3.novel,	9.84E-13,	5.95E-10,	0.275862069
+Alcohol use disorder (total score),	w3.known,	0.005233334,	0.062490143,	0.068965517
+Alcohol use disorder (total score),	DHA.novel,	2.60E-13,	1.57E-10,	0.137931034
+Alcohol use disorder (total score),	DHA.known,	0.006896721,	0.074509215,	0.068965517
+Alcohol use disorder (total score),	w6.novel,	0.000255223,	0.005649146,	0.275862069
+Alcohol use disorder (total score),	w6.known,	0.00738684,	0.09645406,	0.068965517
+Alcohol use disorder (total score),	LA.novel,	0.000321796,	0.006871286,	0.137931034
+Alcohol use disorder (total score),	LA.known,	0.008237781,	0.087436094,	0.068965517
