@@ -1,0 +1,60 @@
+library(plyr)
+library(tidyverse)
+
+dirn<-list.dirs("/Users/mike/Documents/Research/PUFA-GWAS/meta-analysis/novelty/send_novel_back_to_FUMA_pathway_analysis/results", 
+                recursive = F)
+dirk<-list.dirs("/Users/mike/Documents/Research/PUFA-GWAS/meta-analysis/novelty/send_known_back_to_FUMA_pathway_analysis/results-0.05",
+                recursive = F)
+
+
+tabn<-list()
+for (d in 1:length(dirn)){
+    pheno<-str_split(dirn[d], "/", simplify=T)[,11]
+    #Read in tables
+    tabn[[d]]<-as_tibble(
+        read_delim(
+            paste(dirn[d],
+                  "/GS.txt", sep="")))
+    #Add phenotype column
+    tabn[[d]]$Phenotype<-pheno
+    #Add novelty column
+    tabn[[d]]$FromNovel<-1
+    #Put phenotype column first
+    tabn[[d]]<-tabn[[d]]%>%select(Phenotype, everything())
+}
+
+tabk<-list()
+for (d in 1:length(dirn)){
+    pheno<-str_split(dirn[d], "/", simplify=T)[,11]
+    #Read in tables
+    tabk[[d]]<-as_tibble(
+        read_delim(
+            paste(dirk[d],
+                  "/GS.txt", sep="")))
+    #Add phenotype column
+    tabk[[d]]$Phenotype<-pheno
+    #Add novelty column
+    tabk[[d]]$FromNovel<-0
+    #Put phenotype column first
+    tabk[[d]]<-tabk[[d]]%>%select(Phenotype, everything())
+}
+
+tabn<-do.call(rbind, tabn)
+tabk<-do.call(rbind, tabk)
+full<-rbind(tabn,tabk)
+unique(full$Phenotype)
+
+phenotypesb<-c("Docosahexaenoic Acid", 
+               "Linoleic Acid", 
+               "Monounsaturated Fatty Acids",
+               "Omega-3 Fatty Acids", 
+               "Omega-6 Fatty Acids")
+
+
+full$Phenotype<-mapvalues(full$Phenotype, from = unique(full$Phenotype),
+                            to = phenotypesb)
+
+full
+
+
+write.csv(full, "/Users/mike/Documents/Research/PUFA-GWAS/meta-analysis/novelty/genesetenrichbynovelty.04232022.csv")
