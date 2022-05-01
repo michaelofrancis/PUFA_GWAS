@@ -1,3 +1,4 @@
+library(plyr)
 library(tidyverse)
 
 madir<-"/Users/mike/Documents/Research/PUFA-GWAS/meta-analysis/FUMA-out-livermapped"
@@ -13,46 +14,34 @@ for (i in 1:length(dirs)){
     genes[[i]]<-genes[[i]]%>%select(Phenotype, everything())
 }
 
-genes<-do.call(rbind, genes)
-write.csv(genes, "/Users/mike/Documents/Research/PUFA-GWAS/meta-analysis/FUMA-out-livermapped/mapped_genes.csv",
+map<-do.call(rbind, genes)
+write.csv(map, "/Users/mike/Documents/Research/PUFA-GWAS/meta-analysis/FUMA-out-livermapped/mapped_genes.csv",
             quote=F, row.names=F)
 
 
 # Pt 2, join to table -------------------------------------------
 
+map<-as_tibble(read.csv("/Users/mike/Documents/Research/PUFA-GWAS/meta-analysis/FUMA-out-livermapped/mapped_genes.csv"))
 
 FUMA<-as_tibble(read.csv("/Users/mike/Documents/Research/PUFA-GWAS/meta-analysis/alleles.csv"))
 FUMA$BP<-as.numeric(gsub(",", "", FUMA$BP))
 
+FUMA$Phenotype<-mapvalues(FUMA$Phenotype, from=unique(FUMA$Phenotype), to=unique(map$Phenotype))
+FUMA
+
 #map<-as_tibble(read.csv("/Users/mike/Documents/Research/PUFA-GWAS/meta-analysis/S13.Mapped_Genes.csv"))
-map<-as_tibble(read.csv("/Users/mike/Documents/Research/PUFA-GWAS/meta-analysis/FUMA-out-livermapped/mapped_genes.csv"))
+
+identical(unique(FUMA$Phenotype), unique(map$Phenotype))
+#^^MUST BE TRUE
+
 
 FUMA$Gene<-""
 FUMA$Gene_type<-""
-
 for (i in 1:nrow(FUMA)){
     for (j in 1:nrow(map)){
-        
-        if (FUMA[[i,"Phenotype"]]==map[j, "Phenotype"]){ 
-            #If same phenotype, two situations where FUMA pos can be in map pos
+        #If same phenotype, and same genomic locus
+        if (FUMA[[i,"Phenotype"]]==map[j, "Phenotype"] & (FUMA[[i, "GenomicLocus"]] == map[j, "GenomicLocus"])){ 
             
-            if(
-                (FUMA[[i, "pos"]] >= map[j, "start"] & FUMA[[i, "pos"]] <=map[j, "end"]) 
-            ){
-                # cat(
-                #     paste(
-                #         "i: ", i,
-                #         "j: ", j,
-                #     "\nFUMA pheno:", FUMA[i,"Phenotype"],
-                #     "\nmap pheno:", map[j,"Phenotype"],
-                #     "\nFUMA pos:", FUMA[i,"pos"], 
-                #     "\nmap start:", map[j,"start"],
-                #     "\nmap end:", map[j,"end"],
-                #     "\nmap gene:", map[j,"symbol"],
-                #     "\n\n"
-                #     )
-                # )
-                
                 if (FUMA[[i, "Gene"]]==""){        
                     FUMA[[i, "Gene"]]<-map[[j,"symbol"]]
                     FUMA[[i, "Gene_type"]]<-map[[j,"type"]]
@@ -67,10 +56,12 @@ for (i in 1:nrow(FUMA)){
                     FUMA[[i, "Gene_type"]],map[[j,"type"]],
                     sep="; ") 
             }#end inner if
-        }#end outer if
-    }
-}
+        }#end inner for
+    }#end outer for
 
-FUMA<-FUMA%>%select(-Nearest.gene)
+
+
+FUMA
+
 write.csv(FUMA,"/Users/mike/Documents/Research/PUFA-GWAS/meta-analysis/FUMA-out-livermapped/FUMA-maUKBEURMETKET.withmappedgenes.csv",
           row.names=F, quote=F)
