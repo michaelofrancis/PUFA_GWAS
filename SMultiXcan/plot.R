@@ -65,7 +65,7 @@ dat$y=-log10(dat$pvalue)
 
 
 #Designate genes to label
-data_frame<-dat[dat$pvalue<5e-08,]
+data_frame<-dat[dat$pvalue<7.68e-7,]
 colnames(data_frame)<-c("gene_name", "CHR", "POS", "P.value", "y")
 
 #Run lociLeadSNP
@@ -107,7 +107,7 @@ dat,
 build='hg19',
 color1='#0CEBA8',color2='#066C4E') +
 
-geom_hline(yintercept=-log10(5e-8),color='red')+
+geom_hline(yintercept=-log10(7.68e-7),color='red')+
 ggtitle(paste("UKB-EUR SMultiXcan ", phenotypenames[p], sep="")) 
 	+geom_label_repel(
 			aes(label=Label),
