@@ -96,7 +96,7 @@ CMplot(dat,
        
        file="jpg",
        memo="",
-       dpi=600, #set higher when ready to make a nice version
+       dpi=600, 
        col=matrix(c("purple3","mediumpurple3",  #MUFA /innermost phenotype alternating colors (MUFA)
                     "gold2","gold",  #LA
                     "tan3","tan2",  #w6
