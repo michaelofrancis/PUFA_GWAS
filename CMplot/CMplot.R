@@ -1,32 +1,43 @@
 #install.packages("CMplot")
 
 library(CMplot)
+library(plyr)
 library(tidyverse)
 #https://github.com/YinLiLin/CMplot/blob/master/User%20Manual%20for%20CMplot.pdf
 
-dat<-read.csv("/Users/mike/Documents/Research/PUFA-GWAS/CMplot.csv")
+dat<-read.csv("/Users/mike/Documents/Research/PUFA-GWAS/fig1/CMplot-04162022.csv")
 dat<-as_tibble(dat)
 
 cutoff=100
 dat$P_FAw3[-log10(dat$P_FAw3)>cutoff]=1*10^(-cutoff)
-#nrow(dat[-log10(dat$P_FAw3)>cutoff,]) #[1] 140
+#nrow(dat[-log10(dat$P_FAw3)>cutoff,]) 
 dat$P_FAw6[-log10(dat$P_FAw6)>cutoff]=1*10^(-cutoff)
-#nrow(dat[-log10(dat$P_FAw6)>cutoff,]) #[1] 2
+#nrow(dat[-log10(dat$P_FAw6)>cutoff,]) 
 dat$P_DHA[-log10(dat$P_DHA)>cutoff]=1*10^(-cutoff)
-#nrow(dat[-log10(dat$P_DHA)>cutoff]) #[1] 132
+#nrow(dat[-log10(dat$P_DHA)>cutoff]) 
 dat$P_LA[-log10(dat$P_LA)>cutoff]=1*10^(-cutoff)
-#nrow(dat[-log10(dat$P_LA)>cutoff,]) #[1] 2
+#nrow(dat[-log10(dat$P_LA)>cutoff,]) 
 dat$P_MUFA[-log10(dat$P_MUFA)>cutoff]=1*10^(-cutoff)
-#nrow(dat[-log10(dat$P_MUFA)>cutoff,]) #[1] 3
+#nrow(dat[-log10(dat$P_MUFA)>cutoff,]) 
 
 #get order of SNPs
 dat<-dat%>%select(SNP,CHR,BP, P_MUFA, P_LA, P_FAw6, P_DHA, P_FAw3)
 
 
-novel<-as_tibble(read.csv("/Users/mike/Documents/Research/PUFA-GWAS/novelty/meta-analysis/Novel-CMplot.csv"))
-novel<-novel[novel$foundYT==0,]
+novel<-as_tibble(read.csv("/Users/mike/Documents/Research/PUFA-GWAS/fig1/Novel-CMplot-04162022.csv"))
+#novel%>%group_by(Phenotype)%>%summarize(n=n())
 
-novel%>%group_by(Phenotype)%>%summarize(n=n())
+pheno<-c("FAw3", "FAw6", "DHA", "LA", "MUFA")
+full<-c("Omega-3 fatty acids", "Omega-6 fatty acids", 
+        "Docosahexaenoic acid","Linoleic acid",
+        "Monounsaturated fatty acids")
+
+novel$Phenotype<-mapvalues(novel$Phenotype, from=full , to=pheno)
+novel[6:10]<-sapply(novel[6:10], as.double)
+for (i in 1:nrow(novel)){
+    match=paste("P_",novel$Phenotype[i], sep="")
+    novel[i,match] = novel[i,"p"] 
+}
 
 
 
@@ -85,7 +96,7 @@ CMplot(dat,
        
        file="jpg",
        memo="",
-       dpi=600, #set higher when ur ready to make a nice one (600 or more?)
+       dpi=600, #set higher when ready to make a nice version
        col=matrix(c("purple3","mediumpurple3",  #MUFA /innermost phenotype alternating colors (MUFA)
                     "gold2","gold",  #LA
                     "tan3","tan2",  #w6
@@ -100,3 +111,4 @@ CMplot(dat,
 
 end_time <- Sys.time()
 end_time - start_time
+
