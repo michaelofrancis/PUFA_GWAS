@@ -1,8 +1,6 @@
-suppressMessages(library(plyr))
-suppressMessages(library(dplyr))
-suppressMessages(library(tidyverse))
-suppressMessages(library(ggpubr))
-suppressMessages(library(RNOmni))
+suppressMessages(silent <- lapply(
+    c("plyr", "dplyr", "tidyverse", "ggpubr", "RNOmni"), 
+    library, character.only=T))
 
 setwd("/scratch/mf91122/UKB-pheno")
 
