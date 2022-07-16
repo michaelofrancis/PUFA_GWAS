@@ -1,15 +1,21 @@
 #BiocManager::install("karyoploteR")
+#BiocManager::install("TxDb.Hsapiens.UCSC.hg19.knownGene")
 library(karyoploteR)
 library(TxDb.Hsapiens.UCSC.hg19.knownGene)
 library(org.Hs.eg.db)
 suppressMessages(library(tidyverse))
 #library(ggrepel)
+
+#karyoploteR reference/tutorial:
 #https://bernatgel.github.io/karyoploter_tutorial//Tutorial/PlotManhattan/PlotManhattan.html
-#BiocManager::install("TxDb.Hsapiens.UCSC.hg19.knownGene")
+#https://twillis.xyz/misc/using-karyoploteR.html
+#https://bioconductor.org/packages/devel/bioc/manuals/karyoploteR/man/karyoploteR.pdf
+
 
 pheno<-c("FAw3", "FAw6", "DHA", "LA")
 
 tab<-list()
+
 
 # Load data -----------------------------------------------------
 for (i in 1:length(pheno)){
@@ -24,13 +30,15 @@ tab[[i]]$seqnames<-paste("chr", tab[[i]]$seqnames, sep="")
 tab[[i]]$end<-tab[[i]]$start
 }
 
-#Make GRange from tables
+
+
 gr<-list()
 for (i in 1:length(pheno)){
 gr[[i]]<-makeGRangesFromDataFrame(tab[[i]], keep.extra.columns = T,ignore.strand = T)
 }
 
 gr[[1]]
+
 
 # Make plots ----------------------------------------------------
 autotrack.margin <- 0.15
@@ -48,6 +56,7 @@ kp <- kpPlotManhattan(kp, data=gr[[1]], points.col = "turquoise2",
                       logp=TRUE, r0=autotrack(5,5, margin=autotrack.margin), 
                       points.cex = 0.5, ymax=15,
                       genomewide.col="red", 
+                      genomewideline = -log10(2.44e-08),
 )
 
 kpAxis(kp, ymin=0, ymax=15, r0=autotrack(5,5, margin=autotrack.margin), 
@@ -61,7 +70,7 @@ top.snps$y<- -1 *log10(top.snps$pval)
 kpPoints(kp, data = top.snps, pch=17, cex=0.6, col="red", lwd=2, 
          ymax=15, 
          r0=autotrack(5,5, margin=autotrack.margin) )
-kpText(kp, data = top.snps, labels = top.snps$SNP, ymax=15, cex=0.7, 
+kpText(kp, data = top.snps, labels = top.snps$SNP, ymax=15, cex=0.6, 
        pos=4,col="red",
        r0=autotrack(5,5, margin=autotrack.margin) )
     
@@ -78,6 +87,7 @@ kp <- kpPlotManhattan(kp, data=gr[[3]], points.col = "olivedrab3",
                       ymax=12, r0=autotrack(4,5, margin=autotrack.margin), 
                       points.cex = 0.5,
                       genomewide.col="red",
+                      genomewideline = -log10(2.44e-08)
 )
 
 kpAxis(kp, ymin=0, ymax=12, r0=autotrack(4,5, margin=autotrack.margin), 
@@ -91,7 +101,7 @@ top.snps$y<- -1 *log10(top.snps$pval)
 kpPoints(kp, data = top.snps, pch=17, cex=0.6, col="red", lwd=2, 
          ymax=12, 
          r0=autotrack(4,5, margin=autotrack.margin) )
-kpText(kp, data = top.snps, labels = top.snps$SNP, ymax=12, cex=0.7, 
+kpText(kp, data = top.snps, labels = top.snps$SNP, ymax=12, cex=0.6, 
        pos=4,col="red",
        r0=autotrack(4,5, margin=autotrack.margin) )
 
@@ -110,6 +120,7 @@ kp <- kpPlotManhattan(kp, data=gr[[2]], points.col = "tan2",
                       ymax=12, r0=autotrack(3,5, margin=autotrack.margin), 
                       points.cex = 0.5,
                       genomewide.col="red",
+                      genomewideline = -log10(2.44e-08)
 )
 
 kpAxis(kp, ymin=0, ymax=12, r0=autotrack(3,5, margin=autotrack.margin), 
@@ -123,7 +134,7 @@ top.snps$y<- -1 *log10(top.snps$pval)
 kpPoints(kp, data = top.snps, pch=17, cex=0.6, col="red", lwd=2, 
          ymax=12, 
          r0=autotrack(3,5, margin=autotrack.margin) )
-kpText(kp, data = top.snps, labels = top.snps$SNP, ymax=12, cex=0.7, 
+kpText(kp, data = top.snps, labels = top.snps$SNP, ymax=12, cex=0.6, 
        pos=4,col="red",
        r0=autotrack(3,5, margin=autotrack.margin) )
 
@@ -141,6 +152,7 @@ kp <- kpPlotManhattan(kp, data=gr[[4]], points.col = "gold2",
                       ymax=12, r0=autotrack(2,5,margin=autotrack.margin), 
                       points.cex = 0.5,
                       genomewide.col="red",
+                      genomewideline = -log10(2.44e-08)
 )
 
 kpAxis(kp, ymin=0, ymax=12, r0=autotrack(2,5, margin=autotrack.margin), 
@@ -151,16 +163,16 @@ top.snps<-gr[[4]][top1]
 top.snps
 top.snps$y<- -1 *log10(top.snps$pval)
 top.snps2<-top.snps
-top.snps2$y<- -1 *log10(top.snps$pval)+0.5
+top.snps2$y<- -1 *log10(top.snps$pval)+0.7
 
 kpPoints(kp, data = top.snps, pch=17, cex=0.6, col="red", lwd=2,
          ymax=12,
          r0=autotrack(2,5, margin=autotrack.margin) )
-kpText(kp, data = top.snps2, labels = top.snps$SNP, ymax=12, cex=0.7,
+kpText(kp, data = top.snps2, labels = top.snps$SNP, ymax=12, cex=0.6,
        pos=4,col="red",
        r0=autotrack(2,5, margin=autotrack.margin) )
 
-#Gene track (1/5)
+#Gene track
 genes.data <- makeGenesDataFromTxDb(txdb = TxDb.Hsapiens.UCSC.hg19.knownGene, 
                                     karyoplot = kp,
                                     plot.transcripts=TRUE,
@@ -170,11 +182,12 @@ genes.data <- addGeneNames(genes.data)
 genes.data <- mergeTranscripts(genes.data)
 
 kpPlotGenes(kp, data=genes.data, 
-            gene.margin=0.5,
+            transcript.margin=2,
             add.transcript.names = FALSE, 
             r1=0.18, 
             gene.name.position = "left",
             gene.name.cex=0.5,
             plot.transcripts=TRUE,
             plot.transcripts.structure=TRUE,
+            clipping=FALSE
             )
