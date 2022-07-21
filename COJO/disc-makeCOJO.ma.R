@@ -8,7 +8,7 @@ phenotypes<-c("w3FA_NMR_resinv", "w3FA_NMR_TFAP_resinv", "w6FA_NMR_resinv",
                 "MUFA_NMR_resinv", "MUFA_NMR_TFAP_resinv", "PUFA_MUFA_ratio_NMR_resinv")
 
 UKBdir<-"/scratch/mf91122/PUFA-GWAS/BOLT-LMM/results/"
-m=1
+m=2
 
 for (p in 1:length(phenotypes)){
 
