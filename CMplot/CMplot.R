@@ -94,7 +94,7 @@ CMplot(dat,
        highlight.cex = 0.8,
        #ylim=c(0,100),
        
-       file="jpg",
+       file="tiff", #large hq, select png for normal quality
        memo="",
        dpi=600, 
        col=matrix(c("purple3","mediumpurple3",  #MUFA /innermost phenotype alternating colors (MUFA)
