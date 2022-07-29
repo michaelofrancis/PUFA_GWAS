@@ -22,16 +22,17 @@ for (i in 1:length(pheno)){
     ld[[i]]<-ld[[i]]%>%select(chr,phenotype, rsID, SNPtype, r2)
 }
 
-IndSig<-as_tibble(read.csv(
-    "/Users/mike/Documents/R_files/PUFA_GWAS/regionalKaryoploteLDSNPs.csv"))%>%filter(SNPtype=="IndSig")
-
-colnames(IndSig)<-colnames(ld)
+#Decided not to use the IndSig that's why these lines are commented out
+# IndSig<-as_tibble(read.csv(
+#     "/Users/mike/Documents/R_files/PUFA_GWAS/regionalKaryoploteLDSNPs.csv"))%>%filter(SNPtype=="IndSig")
+# 
+# colnames(IndSig)<-colnames(ld)
 
 #Combine into one table
 ld<-do.call(rbind, ld)
 
-annot<-rbind(IndSig, ld)
-
+# annot<-rbind(IndSig, ld)
+annot<-ld
 
 
 # Set colors ---------------------------------------------
@@ -43,12 +44,8 @@ legendcol<-c("#df6022","#e78e37","#edb75c","#f4dc8b","#ffffbf",
 legendcol<-rev(legendcol)
 
 #pointscolor=c("turquoise2","olivedrab3", "tan2", "gold2")
-#pointscolor=c("#6c8384","#838a75", "#aa9b8d", "#8a8466") #https://wtools.io/change-color-saturation 15,15,15,20
-#sat: 10,8,x,15
-
+#pointscolor=c("#6c8384","#838a75", "#aa9b8d", "#8a8466") #https://wtools.io/change-color-saturation
 pointscolor=c("#727d7e","#828679", "#aa9b8d", "#84806c") 
-
-
 
 # Load data -----------------------------------------------------
 
@@ -64,7 +61,8 @@ for (i in 1:length(pheno)){
     colnames(tab[[i]])<-c("SNP", "seqnames", "start", "pval")
     tab[[i]]$seqnames<-paste("chr", tab[[i]]$seqnames, sep="")
     tab[[i]]$end<-tab[[i]]$start
-    gr[[i]]<-makeGRangesFromDataFrame(tab[[i]], keep.extra.columns = T,ignore.strand = T)
+    gr[[i]]<-makeGRangesFromDataFrame(tab[[i]], keep.extra.columns = T,
+                                      ignore.strand = T)
     
 }
 
@@ -148,20 +146,20 @@ for (l in 1:9){
 
 }
 
-#Get Indsigsnps
-IndSigsnpslist<-unlist(annot%>%filter(chr==ch, phenotype==pheno[i], SNPtype=="IndSig")%>%select(rsID))
-IndSigsnpslist
-IndSigsnps<-gr[[i]][gr[[i]]$SNP %in% IndSigsnpslist]
-IndSigsnps$y<- -1 *log10(IndSigsnps$pval)
+# #Get Indsigsnps
+# IndSigsnpslist<-unlist(annot%>%filter(chr==ch, phenotype==pheno[i], SNPtype=="IndSig")%>%select(rsID))
+# IndSigsnpslist
+# IndSigsnps<-gr[[i]][gr[[i]]$SNP %in% IndSigsnpslist]
+# IndSigsnps$y<- -1 *log10(IndSigsnps$pval)
 
-#Color IndSigsnps
-
-if (!identical(IndSigsnpslist, character(0))){
-    kpPoints(kp, data = IndSigsnps, pch=18, cex=0.85, col="#990000",  
-             ymax=ymaxval[i], 
-             r0=autotrack(x,n, margin=autotrack.margin) 
-    )
-}
+# #Color IndSigsnps
+# 
+# if (!identical(IndSigsnpslist, character(0))){
+#     kpPoints(kp, data = IndSigsnps, pch=18, cex=0.85, col="#990000",  
+#              ymax=ymaxval[i], 
+#              r0=autotrack(x,n, margin=autotrack.margin) 
+#     )
+# }
 
 #Get top snps
 grchr<-gr[[i]][seqnames(gr[[i]]) == paste("chr", ch, sep="")]
@@ -216,7 +214,6 @@ kpPlotGenes(kp, data=genes.data,
 dev.off()
 
 
-stop()
 
 #  --------------------------------------------------------------
 # PLOT 2 chr7 ---------------------------------------------------
@@ -284,12 +281,12 @@ for (i in 1:length(pheno)){
     top.snps.label<-top.snps
     top.snps.label$y<-top.snps.label$y+ycorrectlabel[i]
     
-    #Get Indsigsnps
-    IndSigsnpslist<-unlist(annot%>%filter(chr==ch, phenotype==pheno[i], SNPtype=="IndSig")%>%select(rsID))
-    IndSigsnpslist
-    IndSigsnps<-gr[[i]][gr[[i]]$SNP %in% IndSigsnpslist]
-    IndSigsnps$y<- -1 *log10(IndSigsnps$pval)
-    
+    # #Get Indsigsnps
+    # IndSigsnpslist<-unlist(annot%>%filter(chr==ch, phenotype==pheno[i], SNPtype=="IndSig")%>%select(rsID))
+    # IndSigsnpslist
+    # IndSigsnps<-gr[[i]][gr[[i]]$SNP %in% IndSigsnpslist]
+    # IndSigsnps$y<- -1 *log10(IndSigsnps$pval)
+    # 
     
     LDsnpslist<-list()
     LDsnps<-list()
@@ -311,14 +308,14 @@ for (i in 1:length(pheno)){
         
     }
     
-    #Color IndSigsnps
-    
-    if (!identical(IndSigsnpslist, character(0))){
-        kpPoints(kp, data = IndSigsnps, pch=18, cex=0.85, col="#990000",  
-                 ymax=ymaxval[i], 
-                 r0=autotrack(x,n, margin=autotrack.margin) 
-        )
-    }
+    # #Color IndSigsnps
+    # 
+    # if (!identical(IndSigsnpslist, character(0))){
+    #     kpPoints(kp, data = IndSigsnps, pch=18, cex=0.85, col="#990000",  
+    #              ymax=ymaxval[i], 
+    #              r0=autotrack(x,n, margin=autotrack.margin) 
+    #     )
+    # }
     
     #Color top SNP
     kpPoints(kp, data = top.snps, pch=17, cex=0.85, col="red3",  
