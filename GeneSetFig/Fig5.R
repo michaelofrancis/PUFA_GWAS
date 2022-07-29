@@ -47,14 +47,36 @@ nonnovel$novel_GS<-0
 GS<-rbind(novel, nonnovel)
 
 
+GSall<-as_tibble(read.csv(
+    "/Users/mike/Documents/Research/PUFA-GWAS/meta-analysis/GENE2FUNC/combined.csv"))
+GSall$logadjP=-log10(GSall$adjP)
+GSall<-GSall%>%select(-link, -X)
 
-# New plots 7-18-2022 --------------------------------------------
+
+GSall$Phenotype<-mapvalues(x = GSall$Phenotype, from = unique(GSall$Phenotype),
+                           to=c("Docosahexaenoic acid",
+                                "Linoleic acid",
+                                "Monounsaturated fatty acids",
+                                "Omega-3 fatty acids",      
+                                "Omega-6 fatty acids"))
+
+
+GSall
+
+
+# Set colors/params --------------------------------------------
 col=c("turquoise2",
     "olivedrab3",   #DHA 
     "tan2" , #w6
      "gold",  #LA
     "mediumpurple3"  #MUFA /innermost phenotype alternating colors (MUFA)
     )
+
+wrapwidth=50
+posdog=0.08
+
+
+
 
 #--------------------------------------------------------------
 #PLOT1--------------------------------------------------------------
@@ -127,22 +149,6 @@ p1
 #--------------------------------------------------------------
 
 
-GSall<-as_tibble(read.csv("/Users/mike/Documents/Research/PUFA-GWAS/meta-analysis/GENE2FUNC/combined.csv"))
-GSall$logadjP=-log10(GSall$adjP)
-GSall<-GSall%>%select(-link, -X)
-
-
-
-
-GSall$Phenotype<-mapvalues(x = GSall$Phenotype, from = unique(GSall$Phenotype),
-          to=c("Docosahexaenoic acid",
-               "Linoleic acid",
-               "Monounsaturated fatty acids",
-               "Omega-3 fatty acids",      
-                                 "Omega-6 fatty acids"))
-
-
-GSall
 gwas<-GSall%>%filter(Category=="GWAScatalog")
 gwas<-gwas[rev(order(gwas$logadjP)),]
 
@@ -304,7 +310,7 @@ joindplot$Phenotype
 #PLOT ALCOHOL P4-----------------------==========================
 
 # Alcohol by novelty dot plot -------------------------------------
-tiff("AUDbyNovelty.tiff", width = 7, height = 5, units = 'in', res = 300)
+#tiff("AUDbyNovelty.tiff", width = 7, height = 5, units = 'in', res = 300)
 
 p4<-ggplot(joindplot, mapping =aes(x=Phenotype,
                                    y=logadjP, shape=Novelty, 
@@ -319,7 +325,7 @@ p4<-ggplot(joindplot, mapping =aes(x=Phenotype,
                linetype="dashed", color = "grey")
 
 p4
-dev.off()
+#dev.off()
 
 
 
@@ -368,8 +374,7 @@ p5
 
 # cowplot -------------------------------------------------------
 
-wrapwidth=50
-posdog=0.08
+
 
 legend <- get_legend(
     # create some space to the left of the legend
@@ -395,10 +400,14 @@ pgrid<-cowplot::plot_grid(p1+ theme(legend.position="none")+
                    labels = c("A", "", "B", "C", "", "D"), 
                    ncol=3, rel_widths = c(1,0.05, 1))
 
-tiff("Cowplotlegend2.tiff", width = 12, height = 8, units = 'in', res = 300)
-plot_grid(pgrid, NULL, legend2, NULL,ncol = 4, rel_widths = c(1,0.05, .1,0.05))
+tiff("Fig5.1-hq.tiff", width = 12, height = 8, units = 'in', res = 600)
+plot_grid(pgrid, NULL, legend, NULL,ncol = 4, rel_widths = c(1,0.05, .1,0.05))
 dev.off()
 
+#Output second legend
+tiff("Fig5.2-hq.tiff", width = 12, height = 8, units = 'in', res = 600)
+plot_grid(pgrid, NULL, legend2, NULL,ncol = 4, rel_widths = c(1,0.05, .1,0.05))
+dev.off()
 
 stop()
 
@@ -508,3 +517,4 @@ ggplot(data = mf2, aes(x = GeneSet, y=logadjP, fill=Phenotype))+
     theme_bw()+
     ylab(adjloglabel)+
     ggtitle("GO_mf: all significant variants")
+
