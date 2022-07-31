@@ -58,3 +58,20 @@ sed -e '1s/0/P/' $sumdir/M"$m"/"$j"/BOLT1-statsFile-BgenSnps-m"$m"-ldsccols.tran
 
 done
 done
+
+###-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+#Pt 3 filter keep info score > 0.9
+###-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+
+
+for j in ${phenotypes[@]} 
+        do
+
+for m in {1..2}
+        do
+
+awk '{ if ($8 >=0.9) print $0}' $sumdir/M"$m"/"$j"/BOLT1-statsFile-BgenSnps-m"$m"-ldsccols.transfer2 >$sumdir/M"$m"/"$j"/BOLT1-statsFile-BgenSnps-m"$m"-ldsccols.transfer3
+
+done
+done
