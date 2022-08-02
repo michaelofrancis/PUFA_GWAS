@@ -103,7 +103,7 @@ gencorr <- as.matrix(gencorr)
 
 # CORRPLOT ------------------------------------------------------
 
-p.mat<-read.csv("GC_analysis/correlation_matrix_pvalue-fix.csv")
+p.mat<-read.csv("GC_analysis/correlation_matrix_pvalue.csv")
 row.names(p.mat)<-p.mat$X
 p.mat<-p.mat[-1]
 p.mat<-as.matrix(p.mat)
