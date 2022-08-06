@@ -1,5 +1,4 @@
 #install.packages("CMplot")
-
 library(CMplot)
 library(plyr)
 library(tidyverse)
@@ -8,17 +7,9 @@ library(tidyverse)
 dat<-read.csv("/Users/mike/Documents/Research/PUFA-GWAS/fig1/CMplot-04162022.csv")
 dat<-as_tibble(dat)
 
-cutoff=100
-dat$P_FAw3[-log10(dat$P_FAw3)>cutoff]=1*10^(-cutoff)
-#nrow(dat[-log10(dat$P_FAw3)>cutoff,]) 
-dat$P_FAw6[-log10(dat$P_FAw6)>cutoff]=1*10^(-cutoff)
-#nrow(dat[-log10(dat$P_FAw6)>cutoff,]) 
-dat$P_DHA[-log10(dat$P_DHA)>cutoff]=1*10^(-cutoff)
-#nrow(dat[-log10(dat$P_DHA)>cutoff]) 
-dat$P_LA[-log10(dat$P_LA)>cutoff]=1*10^(-cutoff)
-#nrow(dat[-log10(dat$P_LA)>cutoff,]) 
-dat$P_MUFA[-log10(dat$P_MUFA)>cutoff]=1*10^(-cutoff)
-#nrow(dat[-log10(dat$P_MUFA)>cutoff,]) 
+cutoff=1e-100
+dat[dat<cutoff]<-cutoff
+
 
 #get order of SNPs
 dat<-dat%>%select(SNP,CHR,BP, P_MUFA, P_LA, P_FAw6, P_DHA, P_FAw3)
@@ -40,15 +31,7 @@ for (i in 1:nrow(novel)){
 }
 
 
-
-cutoff=100
-novel$P_FAw3[-log10(novel$P_FAw3)>cutoff]=1*10^(-cutoff)
-novel$P_FAw6[-log10(novel$P_FAw6)>cutoff]=1*10^(-cutoff)
-novel$P_DHA[-log10(novel$P_DHA)>cutoff]=1*10^(-cutoff)
-novel$P_LA[-log10(novel$P_LA)>cutoff]=1*10^(-cutoff)
-novel$P_MUFA[-log10(novel$P_MUFA)>cutoff]=1*10^(-cutoff)
-
-
+novel[novel<cutoff]<-cutoff
 
 novel<-novel%>%select(rsID,chr,pos, P_MUFA, P_LA, P_FAw6, P_DHA, P_FAw3)
 colnames(novel)[1:3]<-c("SNP", "CHR", "BP")
@@ -65,7 +48,8 @@ toHighlight
 
 
 
-        start_time <- Sys.time()
+start_time <- Sys.time()
+
 CMplot(dat, 
        type="p",
        plot.type="c", #circular
@@ -79,7 +63,7 @@ CMplot(dat,
        cir.chr.h=1, #width of chromosome boundary
        chr.den.col="grey85", #color of chromosome boundary
        chr.labels=paste("Chr", 1:22, sep=""), #labels for chromosomes
-       threshold = c(5e-08, 5e-300), #set the second number too high to get rid of grey lines
+       threshold = c(5e-08, 1e-301), #set the second number super low to get rid of grey error lines
        threshold.col = c("red4", "green"),
        threshold.lty = 2, #threshold line type.
        amplify=F, #make significant points (re threshold) bigger 
@@ -93,14 +77,13 @@ CMplot(dat,
        #19=filled circle, 20=filled circle
        highlight.cex = 0.8,
        #ylim=c(0,100),
-       
-       file="tiff", #large hq, select png for normal quality
-       memo="",
-       dpi=600, 
+       file="tiff",
+       memo="FINAL",
+       dpi=600, #set higher when ready to make a nice version
        col=matrix(c("purple3","mediumpurple3",  #MUFA /innermost phenotype alternating colors (MUFA)
                     "gold2","gold",  #LA
                     "tan3","tan2",  #w6
-                    "chartreuse3", "olivedrab3",   #DHA 
+                    "#1EC761", "#23E872",  #DHA 
                     "turquoise3","turquoise2"), #w3 / outermost 
                   nrow=5, byrow=T),
        file.output=TRUE,
@@ -108,6 +91,7 @@ CMplot(dat,
        width=10,
        height=10
 )
+
 
 end_time <- Sys.time()
 end_time - start_time
