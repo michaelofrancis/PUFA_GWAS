@@ -66,7 +66,7 @@ GSall
 
 # Set colors/params --------------------------------------------
 col=c("turquoise2",
-    "olivedrab3",   #DHA 
+    "1EC761",   #DHA 
     "tan2" , #w6
      "gold",  #LA
     "mediumpurple3"  #MUFA /innermost phenotype alternating colors (MUFA)
